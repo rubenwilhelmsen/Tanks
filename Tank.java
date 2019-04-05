@@ -10,10 +10,6 @@ public class Tank extends Sprite {
 	private Team team;
 	private int id;
 	private float heading;
-	
-	private boolean colliding = false;
-	
-	private int counter = 0;
 
 	public Tank(PApplet parent, int id, Team team, PVector _startpos, float diameter) {
 		this.parent = parent;
@@ -62,13 +58,13 @@ public class Tank extends Sprite {
 		}
 	}
 
-	public int getId() {
-		return id;
-	}
-
 	public void checkCollision(Tank tank) {
 		// TODO Auto-generated method stub
 
+	}
+
+	public int getId() {
+		return id;
 	}
 
 	public void updateLogic() {
@@ -77,21 +73,15 @@ public class Tank extends Sprite {
 	}
 	
 	private void rotate() {
-		float max = 0.01f;
-		heading += 1 * max;
+		heading += 1 * 0.01f;
 	}
 
 	public void update() {
-		counter++;
-		
 		PVector force = new PVector(PApplet.cos(heading), PApplet.sin(heading));
 		force.mult(0.1f);
 		positionPrev.set(position);
 		acceleration.add(force);
-			position.add(acceleration);
-
-			
-		
+		position.add(acceleration);
 		rotate();
 	}
 

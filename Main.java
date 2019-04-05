@@ -20,12 +20,6 @@ public class Main extends PApplet {
 	int rows = 15;
 	int grid_size = 50;
 
-	// Boolean variables connected to keys
-	boolean left, right, up, down;
-	boolean fire;
-
-	boolean mouse_pressed;
-	boolean userControl;
 	int tankInFocus;
 
 	int team0Color = color(204, 50, 50);
@@ -56,14 +50,6 @@ public class Main extends PApplet {
 	public void setup() {
 
 		grid = new Grid(cols, rows, grid_size, this);
-
-		// grid = new Node[cols][rows];
-		// for (int i = 0; i < cols; i++) {
-		// for (int j = 0; j < rows; j++) {
-		// // Initialize each object
-		// grid[i][j] = new Node(i,j,i*grid_size, j*grid_size);
-		// }
-		// }
 
 		// Skapa alla träd
 		allTrees[0] = new Tree(230, 600, this);
@@ -159,14 +145,7 @@ public class Main extends PApplet {
 		}
 	}
 
-	void setGUI() {
-		println("*** setGUI()- Användargränsnittet skapas.");
-
-	}
-
-	// **************************************************
-	// Gör så att allt i användargränssnittet (GUI) visas.
-	void showGUI() {
+	private void showGUI() {
 		// println("*** showGUI()");
 
 		textSize(14);
@@ -198,12 +177,6 @@ public class Main extends PApplet {
 		}
 	}
 
-	// **************************************************
-	// Gör så att textfälten visas och uppdateras.
-	// Används inte.
-	private void showOutput() {
-	}
-
 	private void displayTrees() {
 		for (int i = 0; i < allTrees.length; i++) {
 			allTrees[i].display();
@@ -212,14 +185,10 @@ public class Main extends PApplet {
 
 	private void gridDisplay() {
 		strokeWeight(0.3f);
-
 		grid.display();
 	}
 
 	private void updateTanksDisplay() {
-		// for (int i = 0; i < allTanks.length; i++) {
-		// allTanks[i].display();
-		// }
 		for (Tank tank : allTanks) {
 			tank.display();
 		}
