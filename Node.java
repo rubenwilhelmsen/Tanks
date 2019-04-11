@@ -56,25 +56,16 @@ public class Node {
 	Sprite content() {
 		return this.content;
 	}
-<<<<<<< HEAD
-<<<<<<< HEAD
-
 
 	@Override
 	public int hashCode() {
 		return super.hashCode();
 	}
-=======
-=======
->>>>>>> 9610c6cb38cf61d30479058cb795de8d8ce6e9a7
+
 	@Override
 	public String toString() {
 		return  "{" + row + "," + col + "}";
 	}
 
 
-<<<<<<< HEAD
->>>>>>> 9610c6cb38cf61d30479058cb795de8d8ce6e9a7
-=======
->>>>>>> 9610c6cb38cf61d30479058cb795de8d8ce6e9a7
 }
