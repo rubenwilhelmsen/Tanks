@@ -1,24 +1,19 @@
 import processing.core.PApplet;
 import processing.core.PVector;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.*;
 
 public class Tank extends Sprite {
 	private LinkedList<Node> frontier;
-	private HashSet<Node> visitedNodes;
+	private HashMap<Node, Boolean> visitedNodes;
 	public Main parent;
-	private PVector startpos;
-	private PVector velocity;
-	private PVector positionPrev;
-	private PVector acceleration;
+	private PVector startpos, velocity, positionPrev, acceleration;
 	private Team team;
 	private int id;
 	private float heading;
 	private int angle, prevAngle;
-	private boolean collided;
-
+	private boolean collided, onTheMove;
+	private Node nextNode, prevNode;
 	private boolean doneRotatingRight, doneRotatingLeft = false;
 	private int counter = 0;
 
@@ -35,8 +30,8 @@ public class Tank extends Sprite {
 		acceleration = new PVector(0, 0);
 		acceleration.limit(10);
 		frontier = new LinkedList<>();
-		visitedNodes = new HashSet<>();
-		collided = false;
+		visitedNodes = new HashMap<>();
+		collided = onTheMove = false;
 		if (this.team.getId() == 0) {
 			this.heading = PApplet.radians(0);
 			angle = 0;
@@ -47,8 +42,10 @@ public class Tank extends Sprite {
 			angle = 180;
 			prevAngle = 180;
 		}
-		frontier.push(parent.gridSearch(startpos));
-		visitedNodes.add(frontier.peek());
+
+
+		startPatrol();
+
 	}
 
 	public void checkEnvironment() {
@@ -69,8 +66,10 @@ public class Tank extends Sprite {
 		if (distanceVectMag <= minDistance) {
 			System.out.println("! Tank[" + id + "] – collided with Tree.");
 
-			//this.position.set(positionPrev); // Flytta tillbaka.
-			//gitacceleration.normalize();
+			 // Flytta tillbaka.
+			collided = true;
+			nextNode = prevNode;
+			acceleration.normalize();
 
 			// Kontroll om att tanken inte "fastnat" i en annan tank.
 			distanceVect = PVector.sub(other.position, this.position);
@@ -78,6 +77,8 @@ public class Tank extends Sprite {
 			if (distanceVectMag < minDistance) {
 				System.out.println("! Tank[" + this.getId() + "] – FAST I ETT TRÄD");
 			}
+		}else{
+			collided = false;
 		}
 	}
 
@@ -114,11 +115,17 @@ public class Tank extends Sprite {
 	}
 
 	public void update() {
-		Node newPosition = fetchNextPosition();
+		if(!onTheMove && !frontier.isEmpty()){
+			 nextNode = fetchNextPosition();
+			 onTheMove = true;
+		}else if(!onTheMove && frontier.isEmpty()){
+            startPatrol();
+        }
+		System.out.println(nextNode.toString() + " " + collided + " SIZE: " + visitedNodes.size());
 
 
 		// rotera tills heading mot target.
-		PVector desired = PVector.sub(newPosition.position, this.position);  // A vector pointing from the position to the target
+		PVector desired = PVector.sub(nextNode.position, this.position);  // A vector pointing from the position to the target
 		float d = desired.mag();
 		// If arrived
 
@@ -132,9 +139,13 @@ public class Tank extends Sprite {
 
 		// Steering = Desired minus Velocity
 		PVector steer = PVector.sub(desired, velocity);
-		steer.limit(0.1f);  // Limit to maximum steering force
+		steer.limit(3f);  // Limit to maximum steering force
 		acceleration.add(steer);
-
+		if(desired.mag() < 0.1f){
+			onTheMove = false;
+			prevNode = nextNode;
+			addToFrontier();
+		}
 
 		positionPrev.set(position); // spara senaste pos.
 		velocity.add(acceleration);
@@ -151,48 +162,34 @@ public class Tank extends Sprite {
 			}
 		}
 
-
-/*
-		//PVector mouse = new PVector(parent.mouseX,parent.mouseY);
-		PVector mouse = new PVector(400, 100);
-		if (mouse != position) {
-			PVector acceleration = PVector.sub(mouse,position);
-			heading = PVector.angleBetween(position, acceleration);
-			// Set magnitude of acceleration
-			acceleration.setMag(10f);
-
-			// Velocity changes according to acceleration
-			velocity.add(acceleration);
-			// Limit the velocity by topspeed
-			velocity.limit(5);
-			// Location changes by velocity
-			positionPrev.set(position);
-			position.add(velocity);
-		} else {
-			System.out.println("done");
-		}*/
-
-
-		/*
-		PVector force = new PVector(PApplet.cos(heading), PApplet.sin(heading));
-		force.mult(0.1f);
-		positionPrev.set(position);
-		acceleration.add(force);
-		position.add(acceleration);
-		rotate();
-		*/
 	}
 	private Node fetchNextPosition(){
-		Node next = frontier.pop();
-		LinkedList<Node> children = parent.getAdjencentNodes(next);
-		for(Node child: children){
-			if(!visitedNodes.contains(child)){
-				frontier.push(child);
+		Node next = null;
+		try{
+			next = frontier.pop();
+			visitedNodes.replace(next,true);
+
+		}catch(NoSuchElementException nse){
+			if(this.position != startpos){
+				System.out.println("Total area searched: " +(100.0*((double)visitedNodes.size()/(parent.grid.rows*parent.grid.cols)) + " Num: " + 0 + "\n Returning to base!"));
+				next = parent.gridSearch(startpos);
 			}
 		}
-		visitedNodes.add(next);
 		return next;
 	}
+	private void addToFrontier(){
+		LinkedList<Node> children = parent.getAdjencentNodes(nextNode);
+		for(Node child: children){
+			if(!visitedNodes.containsKey(child) && !collided){
+				frontier.add(child);
+				visitedNodes.put(child, false);
+			}
+		}
+	}
+	private void startPatrol(){
+        frontier.push(parent.gridSearch(startpos));
+        visitedNodes.put(frontier.peek(),false);
+    }
 
 
 	public void display() {
