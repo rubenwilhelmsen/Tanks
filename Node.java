@@ -56,4 +56,10 @@ public class Node {
 	Sprite content() {
 		return this.content;
 	}
+
+
+	@Override
+	public int hashCode() {
+		return super.hashCode();
+	}
 }

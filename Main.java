@@ -192,9 +192,12 @@ public class Main extends PApplet {
 		}
 	}
 
+	public Node gridSearch(Node currentPosition){
+		return grid.getNearestNode(currentPosition.position);
+	}
 	public Node gridSearch(PVector currentPosition){
-
 		return grid.getNearestNode(currentPosition);
 	}
+
 
 }

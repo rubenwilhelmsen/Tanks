@@ -1,6 +1,7 @@
 import processing.core.PApplet;
 import processing.core.PVector;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -35,14 +36,18 @@ public class Tank extends Sprite {
 		frontier = new LinkedList<>();
 		visitedNodes = new HashSet<>();
 
-		if (this.team.getId() == 0)
+		if (this.team.getId() == 0) {
 			this.heading = PApplet.radians(0);
 			angle = 0;
 			prevAngle = 0;
-		if (this.team.getId() == 1)
+		}
+		if (this.team.getId() == 1) {
 			this.heading = PApplet.radians(180);
 			angle = 180;
 			prevAngle = 180;
+		}
+		frontier.push(parent.gridSearch(startpos));
+		visitedNodes.add(frontier.peek());
 	}
 
 	public void checkEnvironment() {
@@ -176,8 +181,17 @@ public class Tank extends Sprite {
 		*/
 	}
 	private Node fetchNextPosition(){
-		return parent.gridSearch(position);
+		Node next = frontier.pop();
+		//List<Node> children = METOD.MAIN();
+		/*for(Node child: children){
+			if(!visitedNodes.contains(child)){
+				frontier.push(child);
+			}
+		}*/
+		visitedNodes.add(next);
+		return next;
 	}
+
 
 	public void display() {
 		parent.pushMatrix();
