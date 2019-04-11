@@ -198,6 +198,7 @@ public class Main extends PApplet {
 	}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	public Node gridSearch(Node currentPosition){
 		return grid.getNearestNode(currentPosition.position);
 	}
@@ -206,6 +207,17 @@ public class Main extends PApplet {
 =======
 	public List<Node> getAdjencentNodes(Node node) {
 		return grid.getChildrenNodes(node);
+=======
+	public List<Node> getAdjencentNodes(Node node) {
+		return grid.getChildrenNodes(node);
+	}
+
+
+	public Node gridSearch(PVector currentPosition){
+		Node temp = grid.getNearestNode(currentPosition);
+		//System.out.println(Arrays.toString(grid.getChildrenNodes(temp).toArray()));
+		return temp;
+>>>>>>> 9610c6cb38cf61d30479058cb795de8d8ce6e9a7
 	}
 
 
