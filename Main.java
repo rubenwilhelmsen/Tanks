@@ -141,11 +141,6 @@ public class Main extends PApplet {
 
 	private void updateTanks() {
 		allTanks[0].update();
-		/*
-		for (Tank tank : allTanks) {
-			tank.update();
-		}
-		*/
 	}
 
 	private void showGUI() {
@@ -195,6 +190,11 @@ public class Main extends PApplet {
 		for (Tank tank : allTanks) {
 			tank.display();
 		}
+	}
+
+	public Node gridSearch(PVector currentPosition){
+
+		return grid.getNearestNode(currentPosition);
 	}
 
 }

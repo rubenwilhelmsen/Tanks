@@ -1,9 +1,13 @@
 import processing.core.PApplet;
 import processing.core.PVector;
 
-public class Tank extends Sprite {
+import java.util.HashSet;
+import java.util.LinkedList;
 
-	public PApplet parent;
+public class Tank extends Sprite {
+	private LinkedList<Node> frontier;
+	private HashSet<Node> visitedNodes;
+	public Main parent;
 	private PVector startpos;
 	private PVector velocity;
 	private PVector positionPrev;
@@ -16,7 +20,7 @@ public class Tank extends Sprite {
 	private boolean doneRotatingRight, doneRotatingLeft = false;
 	private int counter = 0;
 
-	public Tank(PApplet parent, int id, Team team, PVector _startpos, float diameter) {
+	public Tank(Main parent, int id, Team team, PVector _startpos, float diameter) {
 		this.parent = parent;
 		this.id = id;
 		this.team = team;
@@ -28,6 +32,8 @@ public class Tank extends Sprite {
 		positionPrev = new PVector(0, 0);
 		acceleration = new PVector(0, 0);
 		acceleration.limit(10);
+		frontier = new LinkedList<>();
+		visitedNodes = new HashSet<>();
 
 		if (this.team.getId() == 0)
 			this.heading = PApplet.radians(0);
@@ -41,6 +47,7 @@ public class Tank extends Sprite {
 
 	public void checkEnvironment() {
 		// TODO Auto-generated method stub
+
 
 	}
 
@@ -101,10 +108,10 @@ public class Tank extends Sprite {
 	}
 
 	public void update() {
-		PVector mouse = new  PVector(parent.mouseX,parent.mouseY);
+		Node newPosition = fetchNextPosition();
 
 		// rotera tills heading mot target.
-		PVector desired = PVector.sub(mouse, this.position);  // A vector pointing from the position to the target
+		PVector desired = PVector.sub(newPosition.position, this.position);  // A vector pointing from the position to the target
 		float d = desired.mag();
 		// If arrived
 
@@ -117,23 +124,17 @@ public class Tank extends Sprite {
 		}
 
 		// Steering = Desired minus Velocity
-
 		PVector steer = PVector.sub(desired, velocity);
 		steer.limit(0.1f);  // Limit to maximum steering force
 		acceleration.add(steer);
 
 
 		positionPrev.set(position); // spara senaste pos.
-
 		velocity.add(acceleration);
 		velocity.limit(3);
 		position.add(velocity);
 		acceleration.mult(0);
 
-/*
-		positionPrev.set(position);
-		position.add(desired);
-		*/
 
 		if (!doneRotatingRight) {
 			rotateRight();
@@ -173,6 +174,9 @@ public class Tank extends Sprite {
 		position.add(acceleration);
 		rotate();
 		*/
+	}
+	private Node fetchNextPosition(){
+		return parent.gridSearch(position);
 	}
 
 	public void display() {

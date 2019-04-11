@@ -2,7 +2,7 @@ import processing.core.PApplet;
 import processing.core.PVector;
 
 public class Team {
-	PApplet parent;
+	Main parent;
 	Tank[] tanks = new Tank[3];
 	int id; // team red 0, team blue 1.
 	int tank_size;
@@ -19,7 +19,7 @@ public class Team {
 
 	int numberOfHits; // sammalagda antalet bekräftade träffar på andra lagets tanks.
 
-	Team(PApplet parent, int team_id, int tank_size, int c, PVector tank0_startpos, int tank0_id,
+	Team(Main parent, int team_id, int tank_size, int c, PVector tank0_startpos, int tank0_id,
 			PVector tank1_startpos, int tank1_id, PVector tank2_startpos, int tank2_id) {
 		this.parent = parent;
 		this.id = team_id;
