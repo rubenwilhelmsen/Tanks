@@ -17,6 +17,7 @@ public class Tank extends Sprite {
 	private int id;
 	private float heading;
 	private int angle, prevAngle;
+	private boolean collided;
 
 	private boolean doneRotatingRight, doneRotatingLeft = false;
 	private int counter = 0;
@@ -35,7 +36,7 @@ public class Tank extends Sprite {
 		acceleration.limit(10);
 		frontier = new LinkedList<>();
 		visitedNodes = new HashSet<>();
-
+		collided = false;
 		if (this.team.getId() == 0) {
 			this.heading = PApplet.radians(0);
 			angle = 0;
@@ -68,8 +69,8 @@ public class Tank extends Sprite {
 		if (distanceVectMag <= minDistance) {
 			System.out.println("! Tank[" + id + "] – collided with Tree.");
 
-			this.position.set(positionPrev); // Flytta tillbaka.
-			acceleration.normalize();
+			//this.position.set(positionPrev); // Flytta tillbaka.
+			//gitacceleration.normalize();
 
 			// Kontroll om att tanken inte "fastnat" i en annan tank.
 			distanceVect = PVector.sub(other.position, this.position);
@@ -114,6 +115,7 @@ public class Tank extends Sprite {
 
 	public void update() {
 		Node newPosition = fetchNextPosition();
+
 
 		// rotera tills heading mot target.
 		PVector desired = PVector.sub(newPosition.position, this.position);  // A vector pointing from the position to the target
@@ -182,12 +184,12 @@ public class Tank extends Sprite {
 	}
 	private Node fetchNextPosition(){
 		Node next = frontier.pop();
-		//List<Node> children = METOD.MAIN();
-		/*for(Node child: children){
+		LinkedList<Node> children = parent.getAdjencentNodes(next);
+		for(Node child: children){
 			if(!visitedNodes.contains(child)){
 				frontier.push(child);
 			}
-		}*/
+		}
 		visitedNodes.add(next);
 		return next;
 	}

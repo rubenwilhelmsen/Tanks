@@ -108,7 +108,7 @@ public class Main extends PApplet {
 		teams[1].displayHomeBase();
 		displayTrees();
 		updateTanksDisplay();
-
+		grid.display();
 		showGUI();
 
 	}
@@ -202,7 +202,7 @@ public class Main extends PApplet {
 	public Node gridSearch(Node currentPosition){
 		return grid.getNearestNode(currentPosition.position);
 	}
-	public List<Node> getAdjencentNodes(Node node) {
+	public LinkedList<Node> getAdjencentNodes(Node node) {
 		return grid.getChildrenNodes(node);
 	}
 

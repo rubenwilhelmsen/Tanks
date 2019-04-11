@@ -187,7 +187,7 @@ public class Grid {
 		n.addContent(s);
 	}
 
-	public List<Node> getChildrenNodes(Node node) {
+	public LinkedList<Node> getChildrenNodes(Node node) {
 		LinkedList<Node> temp = new LinkedList<>();
 		// S
 		if (nodes.length > node.row + 1) {
