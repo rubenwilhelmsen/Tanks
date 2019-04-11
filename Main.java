@@ -1,6 +1,10 @@
 import processing.core.PApplet;
 import processing.core.PVector;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 public class Main extends PApplet {
 	
 	public static void main(String[] args) {
@@ -82,6 +86,7 @@ public class Main extends PApplet {
 		allTanks[5] = teams[1].tanks[2];
 
 		tankInFocus = 0;
+
 
 	}
 
@@ -192,9 +197,15 @@ public class Main extends PApplet {
 		}
 	}
 
-	public Node gridSearch(PVector currentPosition){
+	public List<Node> getAdjencentNodes(Node node) {
+		return grid.getChildrenNodes(node);
+	}
 
-		return grid.getNearestNode(currentPosition);
+
+	public Node gridSearch(PVector currentPosition){
+		Node temp = grid.getNearestNode(currentPosition);
+		//System.out.println(Arrays.toString(grid.getChildrenNodes(temp).toArray()));
+		return temp;
 	}
 
 }

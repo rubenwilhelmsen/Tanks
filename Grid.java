@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import processing.core.PApplet;
 import processing.core.PVector;
@@ -183,6 +185,43 @@ public class Grid {
 	void addContent(Sprite s) {
 		Node n = getNearestNode(s.position);
 		n.addContent(s);
+	}
+
+	public List<Node> getChildrenNodes(Node node) {
+		LinkedList<Node> temp = new LinkedList<>();
+		// S
+		if (nodes.length > node.row + 1) {
+			temp.add(nodes[node.col][node.row + 1]);
+		}
+		// SE
+		if (nodes.length > node.row + 1 && nodes.length > node.col + 1) {
+			temp.add(nodes[node.col + 1][node.row + 1]);
+		}
+		// E
+		if (nodes.length > node.col + 1) {
+			temp.add(nodes[node.col + 1][node.row]);
+		}
+		// NE
+		if (nodes.length < node.col + 1 && 0 > node.row - 1) {
+			temp.add(nodes[node.col + 1][node.row]);
+		}
+		// N
+		if (0 <= node.row - 1) {
+			temp.add(nodes[node.col][node.row - 1]);
+		}
+		// NW
+		if (0 <= node.row - 1 && 0 <= node.col - 1) {
+			temp.add(nodes[node.col][node.row - 1]);
+		}
+		// W
+		if (0 <= node.col - 1) {
+			temp.add(nodes[node.col - 1][node.row]);
+		}
+		// SW
+		if (0 <= node.col - 1 && nodes.length > node.row + 1) {
+			temp.add(nodes[node.col - 1][node.row]);
+		}
+		return temp;
 	}
 
 }
