@@ -5,11 +5,16 @@ public class Tank extends Sprite {
 
 	public PApplet parent;
 	private PVector startpos;
+	private PVector velocity;
 	private PVector positionPrev;
 	private PVector acceleration;
 	private Team team;
 	private int id;
 	private float heading;
+	private int angle, prevAngle;
+
+	private boolean doneRotatingRight, doneRotatingLeft = false;
+	private int counter = 0;
 
 	public Tank(PApplet parent, int id, Team team, PVector _startpos, float diameter) {
 		this.parent = parent;
@@ -19,14 +24,19 @@ public class Tank extends Sprite {
 		radius = this.diameter / 2;
 		startpos = new PVector(_startpos.x, _startpos.y);
 		position = new PVector(startpos.x, startpos.y);
+		velocity = new PVector(0,0);
 		positionPrev = new PVector(0, 0);
 		acceleration = new PVector(0, 0);
 		acceleration.limit(10);
 
 		if (this.team.getId() == 0)
 			this.heading = PApplet.radians(0);
+			angle = 0;
+			prevAngle = 0;
 		if (this.team.getId() == 1)
 			this.heading = PApplet.radians(180);
+			angle = 180;
+			prevAngle = 180;
 	}
 
 	public void checkEnvironment() {
@@ -72,17 +82,97 @@ public class Tank extends Sprite {
 
 	}
 	
-	private void rotate() {
-		heading += 1 * 0.01f;
+	private void rotateRight() {
+		heading += parent.radians(1);
+		angle++;
+		if (angle == prevAngle + 90) {
+			prevAngle = angle;
+			doneRotatingRight = true;
+		}
+	}
+
+	private void rotateLeft() {
+		heading -= parent.radians(1);
+		angle--;
+		if (angle == prevAngle - 90) {
+			prevAngle = angle;
+			doneRotatingLeft = true;
+		}
 	}
 
 	public void update() {
+		PVector mouse = new  PVector(parent.mouseX,parent.mouseY);
+
+		// rotera tills heading mot target.
+		PVector desired = PVector.sub(mouse, this.position);  // A vector pointing from the position to the target
+		float d = desired.mag();
+		// If arrived
+
+		// Scale with arbitrary damping within 100 pixels
+		if (d < 100) {
+			float m = parent.map(d, 0, 100, 0, 5);
+			desired.setMag(m);
+		} else {
+			desired.setMag(5);
+		}
+
+		// Steering = Desired minus Velocity
+
+		PVector steer = PVector.sub(desired, velocity);
+		steer.limit(0.1f);  // Limit to maximum steering force
+		acceleration.add(steer);
+
+
+		positionPrev.set(position); // spara senaste pos.
+
+		velocity.add(acceleration);
+		velocity.limit(3);
+		position.add(velocity);
+		acceleration.mult(0);
+
+/*
+		positionPrev.set(position);
+		position.add(desired);
+		*/
+
+		if (!doneRotatingRight) {
+			rotateRight();
+		} else {
+			if (!doneRotatingLeft) {
+				rotateLeft();
+			}
+		}
+
+
+/*
+		//PVector mouse = new PVector(parent.mouseX,parent.mouseY);
+		PVector mouse = new PVector(400, 100);
+		if (mouse != position) {
+			PVector acceleration = PVector.sub(mouse,position);
+			heading = PVector.angleBetween(position, acceleration);
+			// Set magnitude of acceleration
+			acceleration.setMag(10f);
+
+			// Velocity changes according to acceleration
+			velocity.add(acceleration);
+			// Limit the velocity by topspeed
+			velocity.limit(5);
+			// Location changes by velocity
+			positionPrev.set(position);
+			position.add(velocity);
+		} else {
+			System.out.println("done");
+		}*/
+
+
+		/*
 		PVector force = new PVector(PApplet.cos(heading), PApplet.sin(heading));
 		force.mult(0.1f);
 		positionPrev.set(position);
 		acceleration.add(force);
 		position.add(acceleration);
 		rotate();
+		*/
 	}
 
 	public void display() {

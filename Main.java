@@ -140,9 +140,12 @@ public class Main extends PApplet {
 	}
 
 	private void updateTanks() {
+		allTanks[0].update();
+		/*
 		for (Tank tank : allTanks) {
 			tank.update();
 		}
+		*/
 	}
 
 	private void showGUI() {
