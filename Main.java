@@ -133,7 +133,7 @@ public class Main extends PApplet {
 		}
 	}
 
-	private void updateTanksLogic() {
+	private void updateTanksLogic() { 
 		for (Tank tank : allTanks) {
 			tank.updateLogic();
 		}

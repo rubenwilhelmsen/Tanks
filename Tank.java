@@ -126,6 +126,15 @@ public class Tank extends Sprite {
 
 		// rotera tills heading mot target.
 		PVector desired = PVector.sub(nextNode.position, this.position);  // A vector pointing from the position to the target
+		
+		// jag tänker mig att ska rotera tills det är 0 graders vinkel mellan nästa nod och nuvarande nod, detta är kanske något på spåret
+		System.out.println("Angle: " + parent.degrees(PVector.angleBetween(nextNode.position, this.position)));
+		if(parent.degrees(PVector.angleBetween(nextNode.position, this.position)) < 1.f) {
+			rotateLeft();
+		}else {
+			rotateRight();
+		}
+		
 		float d = desired.mag();
 		// If arrived
 
@@ -136,7 +145,6 @@ public class Tank extends Sprite {
 		} else {
 			desired.setMag(5);
 		}
-
 		// Steering = Desired minus Velocity
 		PVector steer = PVector.sub(desired, velocity);
 		steer.limit(3f);  // Limit to maximum steering force
@@ -154,14 +162,14 @@ public class Tank extends Sprite {
 		acceleration.mult(0);
 
 
-		if (!doneRotatingRight) {
+		/*if (!doneRotatingRight) {
 			rotateRight();
 		} else {
 			if (!doneRotatingLeft) {
 				rotateLeft();
 			}
-		}
-
+		}*/
+		
 	}
 	private Node fetchNextPosition(){
 		Node next = null;
