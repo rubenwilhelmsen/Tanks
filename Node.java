@@ -46,6 +46,11 @@ public class Node {
 			this.content = s;
 		}
 	}
+	void removeContent(){
+		if(!this.isEmpty){
+			content = null;
+		}
+	}
 
 	// ***************************************************
 	boolean empty() {
@@ -55,6 +60,17 @@ public class Node {
 	// ***************************************************
 	Sprite content() {
 		return this.content;
+	}
+
+	@Override
+	public boolean equals(Object other){
+		boolean equal = false;
+		if(other instanceof Node){
+			Node temp = (Node)other;
+			equal = (row == temp.row && col == temp.col);
+		}
+
+		return equal;
 	}
 
 	@Override

@@ -197,7 +197,9 @@ public class Main extends PApplet {
 		}
 	}
 
-
+	public int getGrid_size(){
+		return grid_size;
+	}
 
 	public Node gridSearch(Node currentPosition){
 		return grid.getNearestNode(currentPosition.position);
