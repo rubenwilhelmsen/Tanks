@@ -202,8 +202,8 @@ public class Grid {
 			temp.add(nodes[node.col + 1][node.row]);
 		}
 		// NE
-		if (nodes.length < node.col + 1 && 0 > node.row - 1) {
-			temp.add(nodes[node.col + 1][node.row]);
+		if (nodes.length > node.col + 1 && 0 <= node.row - 1) {
+			temp.add(nodes[node.col + 1][node.row-1]);
 		}
 		// N
 		if (0 <= node.row - 1) {
@@ -211,7 +211,7 @@ public class Grid {
 		}
 		// NW
 		if (0 <= node.row - 1 && 0 <= node.col - 1) {
-			temp.add(nodes[node.col][node.row - 1]);
+			temp.add(nodes[node.col-1][node.row - 1]);
 		}
 		// W
 		if (0 <= node.col - 1) {
@@ -219,7 +219,7 @@ public class Grid {
 		}
 		// SW
 		if (0 <= node.col - 1 && nodes.length > node.row + 1) {
-			temp.add(nodes[node.col - 1][node.row]);
+			temp.add(nodes[node.col - 1][node.row+1]);
 		}
 		return temp;
 	}
