@@ -171,6 +171,13 @@ public class Tank extends Sprite {
 		PVector desired = PVector.sub(nextNode.position, this.position);  // A vector pointing from the position to the target
 
 		float d = desired.mag();
+		// jag tänker mig att ska rotera tills det är 0 graders vinkel mellan nästa nod och nuvarande nod, detta är kanske något på spåret.
+		System.out.println("Angle: " + parent.degrees(PVector.angleBetween(nextNode.position, this.position)));
+		if(parent.degrees(PVector.angleBetween(nextNode.position, this.position)) < 1.f) {
+			rotateLeft();
+		}else {
+			rotateRight();
+		}
 		// If arrived
 
 		// Scale with arbitrary damping within 100 pixels
