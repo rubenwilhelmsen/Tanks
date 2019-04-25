@@ -187,8 +187,21 @@ public class Grid {
 		n.addContent(s);
 	}
 
+	//ändrade ordningen
 	public LinkedList<Node> getChildrenNodes(Node node) {
 		LinkedList<Node> temp = new LinkedList<>();
+		// NW
+		if (0 <= node.row - 1 && 0 <= node.col - 1) {
+			temp.add(nodes[node.col-1][node.row - 1]);
+		}
+		// W
+		if (0 <= node.col - 1) {
+			temp.add(nodes[node.col - 1][node.row]);
+		}
+		// SW
+		if (0 <= node.col - 1 && nodes.length > node.row + 1) {
+			temp.add(nodes[node.col - 1][node.row+1]);
+		}
 		// S
 		if (nodes.length > node.row + 1) {
 			temp.add(nodes[node.col][node.row + 1]);
@@ -209,18 +222,7 @@ public class Grid {
 		if (0 <= node.row - 1) {
 			temp.add(nodes[node.col][node.row - 1]);
 		}
-		// NW
-		if (0 <= node.row - 1 && 0 <= node.col - 1) {
-			temp.add(nodes[node.col-1][node.row - 1]);
-		}
-		// W
-		if (0 <= node.col - 1) {
-			temp.add(nodes[node.col - 1][node.row]);
-		}
-		// SW
-		if (0 <= node.col - 1 && nodes.length > node.row + 1) {
-			temp.add(nodes[node.col - 1][node.row+1]);
-		}
+
 		return temp;
 	}
 
