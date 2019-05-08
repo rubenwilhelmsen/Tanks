@@ -20,6 +20,7 @@ public class Tank2 extends Sprite {
 	private boolean detouring = false;
 	private Node detourTarget = null;
 
+	private PVector sensor;
 
 	public Tank2(Main parent, int id, Team team, PVector _startpos, float diameter) {
 		this.parent = parent;
@@ -55,6 +56,7 @@ public class Tank2 extends Sprite {
 		}
 
 		//lägger till alla obstacles hårdkodat just nu, men detta bör ju göras dynamiskt under runtime
+		/*
 		obstacles.add(parent.grid.nodes[4][4]);
 		obstacles.add(parent.grid.nodes[4][3]);
 		obstacles.add(parent.grid.nodes[5][4]);
@@ -71,6 +73,9 @@ public class Tank2 extends Sprite {
 		obstacles.add(parent.grid.nodes[9][10]);
 		obstacles.add(parent.grid.nodes[10][9]);
 		obstacles.add(parent.grid.nodes[10][10]);
+		*/
+
+		sensor = new PVector(position.x,position.y);
 
 		startPatrol();
 
@@ -143,6 +148,22 @@ public class Tank2 extends Sprite {
 
 	}
 
+	public void checkSensor() {
+		sensor = getSensorPositionFromTankAngle(getTankAngle());
+		Node nearestSensorNode = parent.grid.getNearestNode(sensor);
+
+		if (nearestSensorNode != null) {
+			if (!(nearestSensorNode.row == 0 && nearestSensorNode.col == 0)) {
+				if (!nearestSensorNode.isEmpty) {
+					boolean notAdded = obstacles.add(nearestSensorNode);
+					if (notAdded) {
+						System.out.println(nearestSensorNode + " added to obstacles");
+					}
+				}
+			}
+		}
+	}
+
 	public void update() {
 	    //ta nästa nod, kolla ifall den är längre bort än ett hopp
         //kör best-first-search ifall den är längre bort (detour)
@@ -161,6 +182,8 @@ public class Tank2 extends Sprite {
 		} else if (!onTheMove && frontier.isEmpty()) {
 			startPatrol();
 		}
+
+		checkSensor();
 
 		PVector desired = PVector.sub(nextNode.position, this.position);  // A vector pointing from the position to the target
 		float d = desired.mag();
@@ -207,11 +230,20 @@ public class Tank2 extends Sprite {
 		float theta = velocity.heading() + parent.PI / 2 - parent.radians(90);
 		int currentAngle = (int)parent.degrees(heading);
 		int desiredAngle = (int)parent.degrees(theta);
-		if (currentAngle > desiredAngle - 2 && currentAngle < desiredAngle + 2) {
-			if (!obstacles.contains(nextNode)) {
-				//åker bara ifall rotation är klar
-				position.add(velocity);
+
+		if (obstacles.contains(nextNode)) {
+			// lägger till nästa närmaste nod ifall den närmaste är ett obstacle
+			// ändrar detourTarget ifall det är en obstacle
+			if (nextNode == detourTarget) {
+				onTheMove = false;
+				detouring = false;
+			} else {
+				nextNode = addClosestToDetour();
 			}
+		}
+
+		if (currentAngle > desiredAngle - 2 && currentAngle < desiredAngle + 2) {
+			position.add(velocity);
 		} else {
 			if (currentAngle < desiredAngle) {
 				heading += parent.radians(3);
@@ -222,6 +254,68 @@ public class Tank2 extends Sprite {
 		}
 
 		acceleration.mult(0);
+	}
+
+	private int getTankAngle() {
+		int angle = -1;
+		float heading = parent.degrees(this.heading);
+		if (heading == 0) {
+			//System.out.println("E");
+			angle = 0;
+		} else if (heading > 40 && heading < 50) {
+			//System.out.println("SE");
+			angle = 1;
+		} else if (heading > 85 && heading < 95) {
+			//System.out.println("S");
+			angle = 2;
+		} else if (heading > 130 && heading < 140) {
+			//System.out.println("SW");
+			angle = 3;
+		} else if ((heading > 175 && heading < 180) || (heading < -175 && heading > -180)) {
+			//System.out.println("W");
+			angle = 4;
+		} else if (heading < -130 && heading > -140) {
+			//System.out.println("NW");
+			angle = 5;
+		} else if (heading < -85 && heading > -95) {
+			//System.out.println("N");
+			angle = 6;
+		} else if (heading < -40 && heading > -50) {
+			//System.out.println("NE");
+			angle = 7;
+		}
+		return angle;
+	}
+
+	private PVector getSensorPositionFromTankAngle(int tankAngle) {
+		PVector temp = position;
+		switch (tankAngle) {
+			case 0:
+				temp = new PVector(position.x + 50, position.y);
+				break;
+			case 1:
+				temp = new PVector(position.x + 50, position.y + 50);
+				break;
+			case 2:
+				temp = new PVector(position.x, position.y + 50);
+				break;
+			case 3:
+				temp = new PVector(position.x - 50, position.y + 50);
+				break;
+			case 4:
+				temp = new PVector(position.x - 50, position.y);
+				break;
+			case 5:
+				temp = new PVector(position.x - 50, position.y - 50);
+				break;
+			case 6:
+				temp = new PVector(position.x, position.y - 50);
+				break;
+			case 7:
+				temp = new PVector(position.x + 50, position.y - 50);
+				break;
+		}
+		return temp;
 	}
 
 	//lägger till närmaste noden från getAdjecentNode i nextNode när tanken detour:ar
@@ -279,10 +373,15 @@ public class Tank2 extends Sprite {
 
 
 	public void display() {
+		drawSensor();
 		parent.pushMatrix();
 		drawTank(position.x, position.y);
 		drawTurret();
 		parent.popMatrix();
+	}
+
+	private void drawSensor() {
+		parent.ellipse(sensor.x, sensor.y, 20, 20);
 	}
 
 	private void drawTank(float x, float y) {
