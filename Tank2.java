@@ -1,13 +1,11 @@
 import processing.core.PApplet;
 import processing.core.PVector;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 public class Tank2 extends Sprite {
 	private LinkedList<Node> frontier;
+	private PriorityQueue<Node> prioFront;
 	private HashMap<Node, Boolean> visitedNodes;
 	private HashSet<Node> obstacles;
 	private HashMap<Tank2,Node> locatedEnemiesPosition, friendlyTankLocation;
@@ -25,6 +23,7 @@ public class Tank2 extends Sprite {
 	private PVector[] sensor;
 
 	public Tank2(Main parent, int id, Team team, PVector _startpos, float diameter) {
+	    prioFront = new PriorityQueue<>(new NodeComparator());
 		this.parent = parent;
 		this.id = id;
 		this.team = team;
@@ -179,6 +178,8 @@ public class Tank2 extends Sprite {
         return false;
     }
     private void enemyLocated(){
+	    prioFront.addAll(frontier);
+	    frontier.clear();
         startDetouring(parent.gridSearch(startpos));
         returningToReport = true;
     }
@@ -193,7 +194,7 @@ public class Tank2 extends Sprite {
 		if(!reporting){
 			//ta nästa nod, kolla ifall den är längre bort än ett hopp
 			//kör best-first-search ifall den är längre bort (detour)
-			if (!onTheMove && !frontier.isEmpty() && !detouring) {
+			if (!onTheMove && (!frontier.isEmpty()|| !prioFront.isEmpty()) && !detouring) {
 				nextNode = fetchNextPosition();
 				System.out.print("nextNode " + nextNode);
 				if (position.dist(nextNode.position) >= parent.getGrid_size() + 1) {
@@ -203,7 +204,7 @@ public class Tank2 extends Sprite {
 					System.out.println(", node is adjecent");
 				}
 				onTheMove = true;
-			} else if (!onTheMove && frontier.isEmpty()) {
+			} else if (!onTheMove && (frontier.isEmpty() && prioFront.isEmpty())) {
 				startPatrol();
 			}
 
@@ -416,12 +417,27 @@ public class Tank2 extends Sprite {
 		float closest = 0;
 		Node temp = null;
 		LinkedList<Node> adjacent = parent.getAdjacentNodes(currentNode);
+		Node closestEnemy = null;
 		for(Node n: adjacent) {
 			if (!obstacles.contains(n) && (detourExceptions == null || !detourExceptions.contains(n))) {
 				if (!n.equals(detourTarget)) {
 					if (closest == 0 || closest > detourTarget.position.dist(n.position)) {
-						closest = detourTarget.position.dist(n.position);
-						temp = n;
+						if(locatedEnemiesPosition.isEmpty()){
+							closest = detourTarget.position.dist(n.position);
+							temp = n;
+						}else {
+							if(closestEnemy == null){
+								closestEnemy = findClosetEnemy();
+							}
+							float enemyDist = n.position.dist(closestEnemy.position);
+							if(enemyDist > 400){
+								closest = detourTarget.position.dist(n.position);
+								temp = n;
+							}else if(temp == null || enemyDist < temp.position.dist(closestEnemy.position)){
+								closest = detourTarget.position.dist(n.position);
+								temp = n;
+							}
+						}
 					}
 				} else {
 					return n;
@@ -435,7 +451,11 @@ public class Tank2 extends Sprite {
 	private Node fetchNextPosition(){
 		Node next = null;
 		try{
-            next = frontier.pop();
+		    if(locatedEnemiesPosition.isEmpty()){
+                next = frontier.pop();
+            }else{
+		        next = prioFront.poll();
+            }
             if (obstacles.contains(next)) {
                 next = fetchNextPosition();
             }
@@ -451,17 +471,42 @@ public class Tank2 extends Sprite {
 	}
 
 	private void addToFrontier(){
-		LinkedList<Node> children = parent.getAdjacentNodes(nextNode);
-		for(Node child: children){
-			if(!visitedNodes.containsKey(child) && !obstacles.contains(child)){
-				frontier.add(child);
-				visitedNodes.put(child, false);
-			}
-		}
+	    if(locatedEnemiesPosition.isEmpty()){
+	        simpleFrontier();
+        }else{
+	        prioFrontier();
+	    }
 	}
-	private void startPatrol(){
-        frontier.push(parent.gridSearch(startpos));
-        prevNode = currentNode = nextNode = frontier.pop();
+	private void simpleFrontier(){
+        LinkedList<Node> children = parent.getAdjacentNodes(nextNode);
+        for(Node child: children){
+            if(!visitedNodes.containsKey(child) && !obstacles.contains(child)){
+                frontier.add(child);
+                visitedNodes.put(child, false);
+            }
+        }
+    }
+    private void prioFrontier(){
+        LinkedList<Node> children = parent.getAdjacentNodes(nextNode);
+        for(Node child: children){
+            if(!visitedNodes.containsKey(child) && !obstacles.contains(child)){
+                prioFront.add(child);
+                visitedNodes.put(child, false);
+            }
+        }
+    }
+
+    private void startPatrol(){
+
+	    if(locatedEnemiesPosition.isEmpty()){
+            frontier.push(parent.gridSearch(startpos));
+            prevNode = currentNode = nextNode = frontier.pop();
+        }else{
+            prioFront.add(parent.gridSearch(startpos));
+            prevNode = currentNode = nextNode = prioFront.poll();
+        }
+
+
         visitedNodes.put(nextNode,true);
         moveTankContent();
         addToFrontier();
@@ -529,5 +574,38 @@ public class Tank2 extends Sprite {
     public int hashCode() {
 	    return ((Integer)id).hashCode();
     }
+
+	private Node findClosetEnemy(){
+		Iterator<Node> knownEnemyPositions = locatedEnemiesPosition.values().iterator();
+		Node closest = null;
+		while(knownEnemyPositions.hasNext()){
+			Node temp = knownEnemyPositions.next();
+			if(closest == null || (closest.position.dist(this.position) > temp.position.dist(this.position))){
+				closest = temp;
+			}
+		}
+
+		return closest;
+	}
+
+
+
+
+    private class NodeComparator implements Comparator<Node>{
+
+
+        @Override
+        public int compare(Node o1, Node o2) {
+            PVector closestEnemyPosition = findClosetEnemy().position;
+
+            if(o1.position.dist(closestEnemyPosition) < o2.position.dist(closestEnemyPosition)){
+                return 1;
+            }else if(o1.position.dist(closestEnemyPosition) > o2.position.dist(closestEnemyPosition)){
+                return -1;
+            }
+            return 0;
+        }
+    }
+
 
 }
