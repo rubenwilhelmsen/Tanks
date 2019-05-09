@@ -16,11 +16,11 @@ public class Tank2 extends Sprite {
 	private Team team;
 	private int id;
 	private float heading;
-	private boolean collided, onTheMove;
+	private boolean collided, onTheMove, returningToReport, reporting;
 	private Node nextNode, currentNode, prevNode;
 	private boolean detouring = false;
 	private Node detourTarget = null;
-
+    private long reportStarted;
 	private HashSet<Node> detourExceptions;
 	private PVector[] sensor;
 
@@ -40,7 +40,7 @@ public class Tank2 extends Sprite {
 		obstacles = new HashSet<>();
         locatedEnemiesPosition = new HashMap<>();
         friendlyTankLocation = new HashMap<>();
-		collided = onTheMove = false;
+		collided = onTheMove = returningToReport = reporting = false;
 		if (this.team.getId() == 0) {
 			this.heading = PApplet.radians(0);
 		}
@@ -162,6 +162,8 @@ public class Tank2 extends Sprite {
                 locatedEnemiesPosition.replace(tank,atPosition);
                 System.out.println("Enemy located at: " + atPosition.toString());
             }
+            System.out.println("ENEMY!!");
+            enemyLocated();
 	        return true;
         }else if(!tank.equals(this)){
 	        if(!friendlyTankLocation.containsKey(tank)){
@@ -176,18 +178,26 @@ public class Tank2 extends Sprite {
         }
         return false;
     }
+    private void enemyLocated(){
+        startDetouring(parent.gridSearch(startpos));
+        returningToReport = true;
+    }
+    private void reporting(){
+	    returningToReport = false;
+        detouringCompleted();
+	    reporting = true;
+	    reportStarted = System.currentTimeMillis();
+    }
 
 	public void update() {
-		try {
+		if(!reporting){
 			//ta nästa nod, kolla ifall den är längre bort än ett hopp
 			//kör best-first-search ifall den är längre bort (detour)
 			if (!onTheMove && !frontier.isEmpty() && !detouring) {
 				nextNode = fetchNextPosition();
 				System.out.print("nextNode " + nextNode);
 				if (position.dist(nextNode.position) >= parent.getGrid_size() + 1) {
-					detourTarget = nextNode;
-					nextNode = addClosestToDetour();
-					detouring = true;
+					startDetouring(nextNode);
 					System.out.println(", node is not adjecent, detouring");
 				} else {
 					System.out.println(", node is adjecent");
@@ -204,7 +214,7 @@ public class Tank2 extends Sprite {
 
 			// Scale with arbitrary damping within 100 pixels
 			if (d < 10) {
-				float m = parent.map(d, 0, 10, 0, 2);
+				float m = parent.map(d, 0, 5, 0, 1);
 				desired.setMag(m);
 			} else {
 				desired.setMag(5);
@@ -226,13 +236,14 @@ public class Tank2 extends Sprite {
 					// ifall den är på detour, lägg till närmaste till detourTarget
 					// klar ifall "currentNode.equals(detourTarget)"
 					if (currentNode.equals(detourTarget)) {
-						detourExceptions.clear();
-						detouring = false;
-						detourTarget = null;
-						addToFrontier();
-						System.out.println("detour complete");
+					    if(returningToReport){
+					        reporting();
+                        }else{
+                            detouringCompleted();
+                        }
+
 					} else {
-						System.out.println("detouring...");
+						System.out.println("detouring... Target: " + detourTarget);
 						nextNode = addClosestToDetour();
 					}
 				} else {
@@ -276,11 +287,23 @@ public class Tank2 extends Sprite {
 			}
 
 			acceleration.mult(0);
-		} catch (NullPointerException e) {
-			e.printStackTrace();
-		}
-
+		}else if ((reportStarted+3000) < System.currentTimeMillis()){
+		    reporting = false;
+        }
 	}
+    private void startDetouring(Node target){
+        detourExceptions.clear();
+        detourTarget = target;
+        nextNode = addClosestToDetour();
+        detouring = true;
+    }
+	private void detouringCompleted(){
+        detourExceptions.clear();
+        detouring = false;
+        detourTarget = null;
+        addToFrontier();
+        System.out.println("detour complete");
+    }
 
 	private void moveTankContent(){
 		if(currentNode != null && currentNode.equals(nextNode)){
@@ -412,18 +435,18 @@ public class Tank2 extends Sprite {
 	private Node fetchNextPosition(){
 		Node next = null;
 		try{
-			next = frontier.pop();
-			if (obstacles.contains(next)) {
-				next = fetchNextPosition();
-			}
-			visitedNodes.replace(next,true);
+            next = frontier.pop();
+            if (obstacles.contains(next)) {
+                next = fetchNextPosition();
+            }
+            visitedNodes.replace(next,true);
 
-		}catch(NoSuchElementException nse){
-			if(this.position != startpos){
-				System.out.println("Total area searched: " +(100.0*((double)visitedNodes.size()/(parent.grid.getRows()*parent.grid.getCols())) + " Num: " + 0 + "\n Returning to base!"));
-				next = parent.gridSearch(startpos);
-			}
-		}
+        }catch(NoSuchElementException nse){
+            if(this.position != startpos){
+                System.out.println("Total area searched: " +(100.0*((double)visitedNodes.size()/(parent.grid.getRows()*parent.grid.getCols())) + " Num: " + 0 + "\n Returning to base!"));
+                next = parent.gridSearch(startpos);
+            }
+        }
 		return next;
 	}
 
