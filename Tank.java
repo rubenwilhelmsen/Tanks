@@ -13,7 +13,7 @@ public class Tank extends Sprite {
 	private int id;
 	private float heading;
 	private int angle, prevAngle;
-	private boolean collided, onTheMove, onTheRightTrack, regrouped;
+	private boolean collided, onTheMove, onTheRightTrack, regrouped, scanning;
 	private Node nextNode, prevNode, targetNode;
 	private boolean doneRotatingRight, doneRotatingLeft = false;
 	private int counter = 0;
@@ -33,7 +33,7 @@ public class Tank extends Sprite {
 		frontier = new LinkedList<>();
 		visitedNodes = new HashMap<>();
 		obst = new HashSet<>();
-		collided = onTheMove = false;
+		collided = onTheMove = scanning = false;
 		onTheRightTrack = regrouped = true;
 		if (this.team.getId() == 0) {
 			this.heading = PApplet.radians(0);
@@ -41,7 +41,7 @@ public class Tank extends Sprite {
 			prevAngle = 0;
 		}
 		if (this.team.getId() == 1) {
-			this.heading = PApplet.radians(180);
+			this.heading = PApplet.radians(270);
 			angle = 180;
 			prevAngle = 180;
 		}
@@ -55,7 +55,117 @@ public class Tank extends Sprite {
 		// TODO Auto-generated method stub
 
 
+
 	}
+	private void scanSurroundings(){
+		float scanDistance = (parent.getGrid_size()*2);
+		if(angle < 361){
+			angle++;
+		} else {
+			angle = 0;
+		}
+		if(angle != prevAngle) {
+			if (angle < 91) {
+				scanEastToSouth(scanDistance);
+			} else if (angle < 181) {
+				scanSouthToWest(scanDistance);
+			} else if (angle < 271) {
+				scanWestToNorth(scanDistance);
+			} else if (angle < 361) {
+				scanNorthToEast(scanDistance);
+			}
+			this.heading = PApplet.radians(angle);
+		}else {
+			scanning = false;
+			addToFrontier();
+		}
+
+
+	}
+	private void scanEastToSouth(float scanDistance){
+		Node temp = null;
+		switch (angle){
+			case 0:
+				isObstacle(getNodeAt(this.position.x + scanDistance, this.position.y));
+				break;
+			case 22:
+				isObstacle(getNodeAt(this.position.x + scanDistance, this.position.y+ (scanDistance/2.0f)));
+				break;
+			case 45:
+				isObstacle(getNodeAt(this.position.x + scanDistance, this.position.y+ scanDistance));
+				break;
+			case 67:
+				isObstacle(getNodeAt(this.position.x + scanDistance/2.0f, this.position.y+ scanDistance));
+				break;
+			case 90:
+				isObstacle(getNodeAt(this.position.x, this.position.y + scanDistance));
+				break;
+		}
+
+
+	}
+	private void scanSouthToWest(float scanDistance){
+		Node temp = null;
+		switch (angle){
+			case 112:
+				isObstacle(getNodeAt(this.position.x - scanDistance/2.0f, this.position.y + scanDistance));
+				break;
+			case 135:
+				isObstacle(getNodeAt(this.position.x - scanDistance, this.position.y + scanDistance));
+				break;
+			case 157:
+				isObstacle(getNodeAt(this.position.x - scanDistance, this.position.y + scanDistance/2.0f));
+				break;
+			case 180:
+				isObstacle( getNodeAt(this.position.x - scanDistance, this.position.y ));
+				break;
+		}
+
+
+	}
+	private void scanWestToNorth(float scanDistance){
+		Node temp = null;
+		switch (angle){
+			case 202:
+				isObstacle(getNodeAt(this.position.x - scanDistance, this.position.y + scanDistance/2.0f));
+				break;
+			case 225:
+				isObstacle(getNodeAt(this.position.x - scanDistance, this.position.y + scanDistance));
+				break;
+			case 247:
+				isObstacle(getNodeAt(this.position.x - scanDistance/2.0f, this.position.y + scanDistance));
+				break;
+			case 270:
+				isObstacle(getNodeAt(this.position.x, this.position.y + scanDistance));
+				break;
+		}
+
+	}
+
+	private void scanNorthToEast(float scanDistance){
+		Node temp = null;
+		switch (angle){
+			case 292:
+				isObstacle(getNodeAt(this.position.x - scanDistance/2.0f, this.position.y + scanDistance));
+				break;
+			case 315:
+				isObstacle(getNodeAt(this.position.x - scanDistance, this.position.y + scanDistance));
+				break;
+			case 337:
+				isObstacle(getNodeAt(this.position.x - scanDistance, this.position.y + scanDistance/2.0f));
+				break;
+			case 360:
+				isObstacle(getNodeAt(this.position.x + scanDistance, this.position.y));
+				break;
+		}
+
+	}
+
+
+	private Node getNodeAt(float x, float y){
+		return parent.grid.getNearestNode(new PVector(x, y));
+	}
+
 
 	public void checkCollision(Tree other) {
 		PVector distanceVect = PVector.sub(other.position, this.position);
@@ -122,43 +232,36 @@ public class Tank extends Sprite {
 	}
 
 	public void update() {
-
-		if(onTheRightTrack) {
-			if (!onTheMove && !frontier.isEmpty()) {
-				visitedNodes.replace(nextNode, true);
-				if(targetNode == null || atTarget()){
-					targetNode = fetchTargetPosition();
+		if(!scanning){
+			if(onTheRightTrack) {
+				if (!onTheMove && !frontier.isEmpty()) {
+					visitedNodes.replace(nextNode, true);
+					if(targetNode == null || atTarget()){
+						targetNode = fetchTargetPosition();
+					}
+					if(this.position.dist(targetNode.position) <= parent.getGrid_size()*2){
+						nextNode = targetNode;
+					}else{
+						nextNode = calcBestRoute();
+					}
+					onTheMove = true;
+				} else if (!onTheMove && frontier.isEmpty()) {
+					startPatrol();
 				}
-				if(this.position.dist(targetNode.position) <= parent.getGrid_size()*2){
-					nextNode = targetNode;
-				}else{
-					nextNode = calcBestRoute();
-				}
-				onTheMove = true;
-			} else if (!onTheMove && frontier.isEmpty()) {
-				startPatrol();
-			}
-
-			//System.out.println(nextNode.toString() + " " + collided + " SIZE: " + visitedNodes.size());
-
-			move();
-
-
-			if (!doneRotatingRight) {
-				rotateRight();
-			} else {
-				if (!doneRotatingLeft) {
-					rotateLeft();
-				}
-			}
-		}else {
-			if(regrouped){
-				detouring();
-			}else{
 				move();
-			}
 
+			}else {
+				if(regrouped){
+					detouring();
+				}else{
+					move();
+				}
+
+			}
+		}else{
+			scanSurroundings();
 		}
+
 
 
 	}
@@ -172,12 +275,12 @@ public class Tank extends Sprite {
 
 		float d = desired.mag();
 		// jag tänker mig att ska rotera tills det är 0 graders vinkel mellan nästa nod och nuvarande nod, detta är kanske något på spåret.
-		System.out.println("Angle: " + parent.degrees(PVector.angleBetween(nextNode.position, this.position)));
-		if(parent.degrees(PVector.angleBetween(nextNode.position, this.position)) < 1.f) {
+		//System.out.println("Angle: " + parent.degrees(PVector.angleBetween(nextNode.position, this.position)));
+		/*if(parent.degrees(PVector.angleBetween(nextNode.position, this.position)) < 1.f) {
 			rotateLeft();
 		}else {
 			rotateRight();
-		}
+		}*/
 		// If arrived
 
 		// Scale with arbitrary damping within 100 pixels
@@ -192,6 +295,8 @@ public class Tank extends Sprite {
 		PVector steer = PVector.sub(desired, velocity);
 		steer.limit(3f);  // Limit to maximum steering force
 		acceleration.add(steer);
+
+
 
 		destinationReached(d);
 
@@ -230,18 +335,34 @@ public class Tank extends Sprite {
 	}
 
 	private boolean isObstacle(Node node, Tree obstacle){
-		node.addContent(this);
-		float minDistance = node.content.radius + obstacle.radius;
-		PVector distanceVect = PVector.sub(obstacle.position, node.position);
-		node.removeContent();
-		return distanceVect.mag() <= minDistance;
+		if(node.isEmpty) {
+			node.addContent(this);
+			float minDistance = node.content.radius + obstacle.radius;
+			PVector distanceVect = PVector.sub(obstacle.position, node.position);
+			node.removeContent();
+			return distanceVect.mag() <= minDistance;
+		}else{
+			return true;
+		}
+	}
+	private boolean isObstacle(Node node){
+		angle += 15;
+		if(!node.isEmpty){
+			obst.add(node);
+			return true;
+		}else{
+			return false;
+		}
+
+
 	}
 	private boolean destinationReached(float distanceToDest){
 		if(distanceToDest < 0.1f && onTheMove){
 			onTheMove = false;
 			prevNode = nextNode;
 			if (onTheRightTrack) {
-				addToFrontier();
+				scanning = true;
+				prevAngle = angle;
 			}
 			regrouped = true;
 
@@ -288,7 +409,7 @@ public class Tank extends Sprite {
 			next = frontier.pop();
 		}catch(NoSuchElementException nse){
 			if(this.position != startpos){
-				System.out.println("Total area searched: " +(100.0*((double)visitedNodes.size()/(parent.grid.rows*parent.grid.cols)) + " Num: " + 0 + "\n Returning to base!"));
+				System.out.println("Total area searched: " +(100.0*((double)visitedNodes.size()/(parent.grid.getRows()*parent.grid.getCols())) + " Num: " + 0 + "\n Returning to base!"));
 				next = parent.gridSearch(startpos);
 			}
 		}
@@ -301,6 +422,8 @@ public class Tank extends Sprite {
 				frontier.add(child);
 				visitedNodes.put(child, false);
 			}
+
+
 		}
 	}
 	private void startPatrol(){
