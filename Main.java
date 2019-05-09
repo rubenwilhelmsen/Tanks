@@ -167,9 +167,9 @@ public class Main extends PApplet {
 	}
 
 	private void updateTanks() {
-		for (Tank2 t : allTanks) {
-			t.update();
-		}
+		//for (Tank2 t : allTanks) {
+			allTanks[0].update();
+		//}
 	}
 
 	private void showGUI() {
