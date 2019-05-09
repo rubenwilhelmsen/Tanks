@@ -364,7 +364,7 @@ public class Tank2 extends Sprite {
 	private Node addClosestToDetour() {
 		float closest = 0;
 		Node temp = null;
-		LinkedList<Node> adjecent = parent.getAdjencentNodes(currentNode);
+		LinkedList<Node> adjecent = parent.getAdjacentNodes(currentNode);
 		for(Node n: adjecent) {
 			if (!obstacles.contains(n) && (detourExceptions == null || !detourExceptions.contains(n))) {
 				if (!n.equals(detourTarget)) {
@@ -400,7 +400,7 @@ public class Tank2 extends Sprite {
 	}
 
 	private void addToFrontier(){
-		LinkedList<Node> children = parent.getAdjencentNodes(nextNode);
+		LinkedList<Node> children = parent.getAdjacentNodes(nextNode);
 		for(Node child: children){
 			if(!visitedNodes.containsKey(child) && !obstacles.contains(child)){
 				frontier.add(child);

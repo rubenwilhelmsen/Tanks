@@ -87,29 +87,6 @@ public class Main extends PApplet {
 
 		tankInFocus = 0;
 
-
-		// alla noder med träd får isEmpty false eftersom tanken måste ha ett sätt att kolla vad som gör att en nod är ett obstacle
-		// man skulle också kunna göra detta genom att kolla kollision av sensor med träd, kanske snyggare
-		/*
-		grid.nodes[4][4].isEmpty = false;
-		grid.nodes[4][3].isEmpty = false;
-		grid.nodes[5][4].isEmpty = false;
-		grid.nodes[5][3].isEmpty = false;
-
-		grid.nodes[3][10].isEmpty = false;
-		grid.nodes[3][11].isEmpty = false;
-		grid.nodes[3][12].isEmpty = false;
-		grid.nodes[4][10].isEmpty = false;
-		grid.nodes[4][11].isEmpty = false;
-		grid.nodes[4][12].isEmpty = false;
-
-		grid.nodes[8][9].isEmpty = false;
-		grid.nodes[8][10].isEmpty = false;
-		grid.nodes[9][9].isEmpty = false;
-		grid.nodes[9][10].isEmpty = false;
-		grid.nodes[10][9].isEmpty = false;
-		grid.nodes[10][10].isEmpty = false;
-		*/
 	}
 
 	public void draw() {
@@ -167,9 +144,10 @@ public class Main extends PApplet {
 	}
 
 	private void updateTanks() {
-		for (Tank2 t : allTanks) {
+		/*for (Tank2 t : allTanks) {
 			t.update();
-		}
+		}*/
+		allTanks[0].update();
 	}
 
 	private void showGUI() {
@@ -228,7 +206,7 @@ public class Main extends PApplet {
 	public Node gridSearch(Node currentPosition){
 		return grid.getNearestNode(currentPosition.position);
 	}
-	public LinkedList<Node> getAdjencentNodes(Node node) {
+	public LinkedList<Node> getAdjacentNodes(Node node) {
 		return grid.getChildrenNodes(node);
 	}
 
