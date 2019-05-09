@@ -159,9 +159,13 @@ public class Tank2 extends Sprite {
 			if (nearestSensorNode != null) {
 				if (!(nearestSensorNode.row == 0 && nearestSensorNode.col == 0)) {
 					if (!nearestSensorNode.isEmpty) {
-						boolean notAdded = obstacles.add(nearestSensorNode);
-						if (notAdded) {
-							System.out.println(nearestSensorNode + " added to obstacles");
+						if (isContentTank(nearestSensorNode)) {
+
+						} else {
+							boolean notAdded = obstacles.add(nearestSensorNode);
+							if (notAdded) {
+								System.out.println(nearestSensorNode + " added to obstacles");
+							}
 						}
 					}
 				}
@@ -170,11 +174,19 @@ public class Tank2 extends Sprite {
 
 	}
 
+	private boolean isContentTank(Node n) {
+		if (n.content() instanceof Tank2) {
+			return true;
+		}
+		return false;
+	}
+
 	public void update() {
 		try {
 			//ta nästa nod, kolla ifall den är längre bort än ett hopp
 			//kör best-first-search ifall den är längre bort (detour)
 			if (!onTheMove && !frontier.isEmpty() && !detouring) {
+
 				nextNode = fetchNextPosition();
 				System.out.print("nextNode " + nextNode);
 				if (position.dist(nextNode.position) >= parent.getGrid_size() + 1) {
@@ -211,6 +223,7 @@ public class Tank2 extends Sprite {
 			// tanken har anlänt vid nextNode
 			if (desired.mag() < 0.1f) {
 				System.out.println("arrived at " + nextNode);
+
 				prevNode = currentNode;
 				currentNode = nextNode;
 				if (detouring) {
@@ -232,6 +245,8 @@ public class Tank2 extends Sprite {
 					addToFrontier();
 				}
 			}
+
+
 
 			velocity.add(acceleration);
 			velocity.limit(3);
@@ -256,6 +271,7 @@ public class Tank2 extends Sprite {
 			if (currentAngle > desiredAngle - 2 && currentAngle < desiredAngle + 2) {
 				position.add(velocity);
 			} else {
+
 				if (currentAngle < desiredAngle) {
 					heading += parent.radians(3);
 				} else {

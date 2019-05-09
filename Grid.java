@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -71,6 +72,11 @@ public class Grid {
 				parent.ellipse(nodes[i][j].position.x, nodes[i][j].position.y, 5.0f, 5.0f);
 				// println("nodes[i][j].position.x: " + nodes[i][j].position.x);
 				// println(nodes[i][j]);
+				if (!nodes[i][j].isEmpty) {
+					parent.fill(255,0,255);
+					parent.ellipse(nodes[i][j].position.x, nodes[i][j].position.y, 25, 25);
+					parent.noFill();
+				}
 			}
 			// line(0, i*grid_size+grid_size, width, i*grid_size+grid_size);
 		}
