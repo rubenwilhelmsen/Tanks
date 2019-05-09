@@ -1,37 +1,55 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 import processing.core.PApplet;
 import processing.core.PVector;
 
 public class Grid {
-	PApplet parent;
-	int cols, rows;
-	int grid_size;
-	Node[][] nodes;
+	private PApplet parent;
+	private int cols;
+	private int rows;
+	private int grid_size;
+	private Node[][] nodes;
+	private Tree[] obstacles;
 
 	// ***************************************************
-	Grid(int _cols, int _rows, int _grid_size, PApplet parent) {
+	public Grid(int _cols, int _rows, int _grid_size, PApplet parent, Tree[] obstacles) {
 		this.parent = parent;
+		this.obstacles = obstacles;
 		cols = _cols;
 		rows = _rows;
 		grid_size = _grid_size;
 		nodes = new Node[cols][rows];
-
-		createGrgetId();
+		createGridNodes();
 	}
 
 	// ***************************************************
-	void createGrgetId() {
+	private void createGridNodes() {
 
 		for (int i = 0; i < cols; i++) {
 			for (int j = 0; j < rows; j++) {
 				// Initialize each object
 				nodes[i][j] = new Node(i, j, i * grid_size + grid_size, j * grid_size + grid_size);
+				calcIfObstacleNode(nodes[i][j]);
 			}
 		}
 	}
+
+
+	private void calcIfObstacleNode(Node node){
+		for(Tree obst : obstacles){
+			PVector distanceVect = PVector.sub(node.position, obst.position);
+			float distance = distanceVect.mag();
+			float minDistance = obst.radius + grid_size/2.0f;
+			if ( distance <= minDistance){
+				node.addContent(obst);
+				System.out.println(node.toString() + " " + obst.position.toString());
+				break;
+			}
+		}
+	}
+
+
 
 	// ***************************************************
 	// ANVÄNDS INTE!
@@ -224,6 +242,20 @@ public class Grid {
 		}
 
 		return temp;
+	}
+
+
+
+	public int getCols() {
+		return cols;
+	}
+
+	public int getRows() {
+		return rows;
+	}
+
+	public int getGrid_size() {
+		return grid_size;
 	}
 
 }

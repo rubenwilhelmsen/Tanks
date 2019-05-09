@@ -44,11 +44,13 @@ public class Node {
 	void addContent(Sprite s) {
 		if (this.isEmpty) {
 			this.content = s;
+			this.isEmpty = false;
 		}
 	}
 	void removeContent(){
 		if(!this.isEmpty){
 			content = null;
+			this.isEmpty = true;
 		}
 	}
 
