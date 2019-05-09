@@ -274,7 +274,7 @@ public class Tank extends Sprite {
 		PVector desired = PVector.sub(nextNode.position, this.position);  // A vector pointing from the position to the target
 
 		float d = desired.mag();
-		// jag tänker mig att ska rotera tills det är 0 graders vinkel mellan nästa nod och nuvarande nod, detta är kanske något på spåret.
+		// jag tï¿½nker mig att ska rotera tills det ï¿½r 0 graders vinkel mellan nï¿½sta nod och nuvarande nod, detta ï¿½r kanske nï¿½got pï¿½ spï¿½ret.
 		//System.out.println("Angle: " + parent.degrees(PVector.angleBetween(nextNode.position, this.position)));
 		/*if(parent.degrees(PVector.angleBetween(nextNode.position, this.position)) < 1.f) {
 			rotateLeft();
@@ -389,7 +389,7 @@ public class Tank extends Sprite {
 	private Node calcBestRoute(){
 		double currentDist;
 		Node bestPath = null;
-		LinkedList<Node> surroundings = parent.getAdjencentNodes(nextNode);
+		LinkedList<Node> surroundings = parent.getAdjacentNodes(nextNode);
 		for(Node node : surroundings){
 			currentDist = node.position.dist(targetNode.position);
 			System.out.println("Pot: "  + node.toString() + " DIST: " + node.position.dist(targetNode.position) + " TARGET: " + targetNode.toString());
@@ -416,7 +416,7 @@ public class Tank extends Sprite {
 		return next;
 	}
 	private void addToFrontier(){
-		LinkedList<Node> children = parent.getAdjencentNodes(nextNode);
+		LinkedList<Node> children = parent.getAdjacentNodes(nextNode);
 		for(Node child: children){
 			if(!visitedNodes.containsKey(child) && !obst.contains(child)){
 				frontier.add(child);
