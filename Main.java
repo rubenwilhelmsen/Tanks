@@ -31,7 +31,7 @@ public class Main extends PApplet {
 
 	Tree[] allTrees = new Tree[3];
 
-	Tank[] allTanks = new Tank[6];
+	Tank2[] allTanks = new Tank2[6];
 
 	Team[] teams = new Team[2];
 
@@ -53,12 +53,12 @@ public class Main extends PApplet {
 	
 	public void setup() {
 
-		grid = new Grid(cols, rows, grid_size, this);
-
 		// Skapa alla träd
 		allTrees[0] = new Tree(230, 600, this);
 		allTrees[1] = new Tree(280, 230, this);// 280,230(300,300)
 		allTrees[2] = new Tree(530, 520, this);// 530, 520(500,500);
+
+		grid = new Grid(cols, rows, grid_size, this, allTrees);
 
 		// Team0
 		team0_tank0_startpos = new PVector(50, 50);
@@ -90,6 +90,7 @@ public class Main extends PApplet {
 
 		// alla noder med träd får isEmpty false eftersom tanken måste ha ett sätt att kolla vad som gör att en nod är ett obstacle
 		// man skulle också kunna göra detta genom att kolla kollision av sensor med träd, kanske snyggare
+		/*
 		grid.nodes[4][4].isEmpty = false;
 		grid.nodes[4][3].isEmpty = false;
 		grid.nodes[5][4].isEmpty = false;
@@ -108,7 +109,7 @@ public class Main extends PApplet {
 		grid.nodes[9][10].isEmpty = false;
 		grid.nodes[10][9].isEmpty = false;
 		grid.nodes[10][10].isEmpty = false;
-
+		*/
 	}
 
 	public void draw() {
@@ -155,7 +156,7 @@ public class Main extends PApplet {
 	}
 
 	private void updateTanksLogic() {
-		for (Tank tank : allTanks) {
+		for (Tank2 tank : allTanks) {
 			tank.updateLogic();
 		}
 	}
@@ -166,7 +167,9 @@ public class Main extends PApplet {
 	}
 
 	private void updateTanks() {
-		allTanks[0].update();
+		for (Tank2 t : allTanks) {
+			t.update();
+		}
 	}
 
 	private void showGUI() {
@@ -213,7 +216,7 @@ public class Main extends PApplet {
 	}
 
 	private void updateTanksDisplay() {
-		for (Tank tank : allTanks) {
+		for (Tank2 tank : allTanks) {
 			tank.display();
 		}
 	}

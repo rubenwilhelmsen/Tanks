@@ -16,10 +16,11 @@ public class Tank2 extends Sprite {
 	private int id;
 	private float heading;
 	private boolean collided, onTheMove;
-	private Node nextNode, currentNode;
+	private Node nextNode, currentNode, prevNode;
 	private boolean detouring = false;
 	private Node detourTarget = null;
 
+	private HashSet<Node> detourExceptions;
 	private PVector sensor;
 
 	public Tank2(Main parent, int id, Team team, PVector _startpos, float diameter) {
@@ -76,6 +77,7 @@ public class Tank2 extends Sprite {
 		*/
 
 		sensor = new PVector(position.x,position.y);
+		detourExceptions = new HashSet<>();
 
 		startPatrol();
 
@@ -99,10 +101,11 @@ public class Tank2 extends Sprite {
 		if (distanceVectMag <= minDistance) {
 			if (!collided) {
 				System.out.println("! Tank[" + id + "] – collided with Tree.");
-				/*
+/*
 				System.out.println("collided");
 				// Flytta tillbaka.
 				collided = true;
+
 
 				if (!nextNode.equals(currentNode)) {
 					Node colliededNode = nextNode;
@@ -110,6 +113,7 @@ public class Tank2 extends Sprite {
 					frontier.remove(colliededNode);
 					System.out.println(colliededNode + " put in obstacles and removed from frontier");
 				}
+
 
 
 
@@ -125,9 +129,7 @@ public class Tank2 extends Sprite {
 				if (distanceVectMag < minDistance) {
 					//System.out.println("! Tank[" + this.getId() + "] – FAST I ETT TRÄD");
 				}
-
 				*/
-
 			}
 		}else{
 			collided = false;
@@ -165,95 +167,104 @@ public class Tank2 extends Sprite {
 	}
 
 	public void update() {
-	    //ta nästa nod, kolla ifall den är längre bort än ett hopp
-        //kör best-first-search ifall den är längre bort (detour)
-		if (!onTheMove && !frontier.isEmpty() && !detouring) {
-			nextNode = fetchNextPosition();
-			System.out.print("nextNode " + nextNode);
-			if (position.dist(nextNode.position) >= parent.getGrid_size() + 1) {
-				detourTarget = nextNode;
-				nextNode = addClosestToDetour();
-				detouring = true;
-				System.out.println(", node is not adjecent, detouring");
-			} else {
-				System.out.println(", node is adjecent");
-			}
-			onTheMove = true;
-		} else if (!onTheMove && frontier.isEmpty()) {
-			startPatrol();
-		}
-
-		checkSensor();
-
-		PVector desired = PVector.sub(nextNode.position, this.position);  // A vector pointing from the position to the target
-		float d = desired.mag();
-
-		// Scale with arbitrary damping within 100 pixels
-		if (d < 50) {
-			float m = parent.map(d, 0, 20, 0, 5);
-			desired.setMag(m);
-		} else {
-			desired.setMag(5);
-		}
-
-		// Steering = Desired minus Velocity
-		PVector steer = PVector.sub(desired, velocity);
-		steer.limit(3f);  // Limit to maximum steering force
-		acceleration.add(steer);
-
-		// tanken har anlänt vid nextNode
-		if (desired.mag() < 0.1f) {
-			System.out.println("arrived at " + nextNode);
-			currentNode = nextNode;
-			if (detouring) {
-                // ifall den är på detour, lägg till närmaste till detourTarget
-                // klar ifall "currentNode.equals(detourTarget)"
-				if (currentNode.equals(detourTarget)) {
-					detouring = false;
-					detourTarget = null;
-					addToFrontier();
-					System.out.println("detour complete");
+		try {
+			//ta nästa nod, kolla ifall den är längre bort än ett hopp
+			//kör best-first-search ifall den är längre bort (detour)
+			if (!onTheMove && !frontier.isEmpty() && !detouring) {
+				nextNode = fetchNextPosition();
+				System.out.print("nextNode " + nextNode);
+				if (position.dist(nextNode.position) >= parent.getGrid_size() + 1) {
+					detourTarget = nextNode;
+					nextNode = addClosestToDetour();
+					detouring = true;
+					System.out.println(", node is not adjecent, detouring");
 				} else {
-					System.out.println("detouring...");
+					System.out.println(", node is adjecent");
+				}
+				onTheMove = true;
+			} else if (!onTheMove && frontier.isEmpty()) {
+				startPatrol();
+			}
+
+			checkSensor();
+
+			PVector desired = PVector.sub(nextNode.position, this.position);  // A vector pointing from the position to the target
+			float d = desired.mag();
+
+			// Scale with arbitrary damping within 100 pixels
+			if (d < 10) {
+				float m = parent.map(d, 0, 10, 0, 2);
+				desired.setMag(m);
+			} else {
+				desired.setMag(5);
+			}
+
+			// Steering = Desired minus Velocity
+			PVector steer = PVector.sub(desired, velocity);
+			steer.limit(3f);  // Limit to maximum steering force
+			acceleration.add(steer);
+
+			// tanken har anlänt vid nextNode
+			if (desired.mag() < 0.1f) {
+				System.out.println("arrived at " + nextNode);
+				prevNode = currentNode;
+				currentNode = nextNode;
+				if (detouring) {
+					detourExceptions.add(prevNode);
+					// ifall den är på detour, lägg till närmaste till detourTarget
+					// klar ifall "currentNode.equals(detourTarget)"
+					if (currentNode.equals(detourTarget)) {
+						detourExceptions.clear();
+						detouring = false;
+						detourTarget = null;
+						addToFrontier();
+						System.out.println("detour complete");
+					} else {
+						System.out.println("detouring...");
+						nextNode = addClosestToDetour();
+					}
+				} else {
+					onTheMove = false;
+					addToFrontier();
+				}
+			}
+
+			velocity.add(acceleration);
+			velocity.limit(3);
+
+			//rotering till nästa nod
+			float theta = velocity.heading() + parent.PI / 2 - parent.radians(90);
+			int currentAngle = (int)parent.degrees(heading);
+			int desiredAngle = (int)parent.degrees(theta);
+
+			if (obstacles.contains(nextNode)) {
+				// lägger till nästa närmaste nod ifall nästa är ett obstacle
+				// ändrar detourTarget ifall det är en obstacle
+				if (nextNode == detourTarget) {
+					onTheMove = false;
+					detouring = false;
+				} else {
+					//detourExceptions.add(prevNode);
 					nextNode = addClosestToDetour();
 				}
-			} else {
-				onTheMove = false;
-				addToFrontier();
-			}
-		}
-
-		velocity.add(acceleration);
-		velocity.limit(3);
-
-		//rotering till nästa nod
-		float theta = velocity.heading() + parent.PI / 2 - parent.radians(90);
-		int currentAngle = (int)parent.degrees(heading);
-		int desiredAngle = (int)parent.degrees(theta);
-
-		if (obstacles.contains(nextNode)) {
-			// lägger till nästa närmaste nod ifall den närmaste är ett obstacle
-			// ändrar detourTarget ifall det är en obstacle
-			if (nextNode == detourTarget) {
-				onTheMove = false;
-				detouring = false;
-			} else {
-				nextNode = addClosestToDetour();
-			}
-		}
-
-		if (currentAngle > desiredAngle - 2 && currentAngle < desiredAngle + 2) {
-			position.add(velocity);
-		} else {
-			if (currentAngle < desiredAngle) {
-				heading += parent.radians(3);
-			} else {
-				heading -= parent.radians(3);
 			}
 
+			if (currentAngle > desiredAngle - 2 && currentAngle < desiredAngle + 2) {
+				position.add(velocity);
+			} else {
+				if (currentAngle < desiredAngle) {
+					heading += parent.radians(3);
+				} else {
+					heading -= parent.radians(3);
+				}
+
+			}
+
+			acceleration.mult(0);
+		} catch (NullPointerException e) {
+			e.printStackTrace();
 		}
 
-		acceleration.mult(0);
 	}
 
 	private int getTankAngle() {
@@ -318,13 +329,44 @@ public class Tank2 extends Sprite {
 		return temp;
 	}
 
+	private PVector getSensorPositionFromTankAngle2(int tankAngle) {
+		PVector temp = position;
+		switch (tankAngle) {
+			case 0:
+				temp = new PVector(position.x + 100, position.y);
+				break;
+			case 1:
+				temp = new PVector(position.x + 100, position.y + 100);
+				break;
+			case 2:
+				temp = new PVector(position.x, position.y + 100);
+				break;
+			case 3:
+				temp = new PVector(position.x - 100, position.y + 100);
+				break;
+			case 4:
+				temp = new PVector(position.x - 100, position.y);
+				break;
+			case 5:
+				temp = new PVector(position.x - 100, position.y - 100);
+				break;
+			case 6:
+				temp = new PVector(position.x, position.y - 100);
+				break;
+			case 7:
+				temp = new PVector(position.x + 100, position.y - 100);
+				break;
+		}
+		return temp;
+	}
+
 	//lägger till närmaste noden från getAdjecentNode i nextNode när tanken detour:ar
 	private Node addClosestToDetour() {
 		float closest = 0;
 		Node temp = null;
 		LinkedList<Node> adjecent = parent.getAdjencentNodes(currentNode);
 		for(Node n: adjecent) {
-			if (!obstacles.contains(n)) {
+			if (!obstacles.contains(n) && (detourExceptions == null || !detourExceptions.contains(n))) {
 				if (!n.equals(detourTarget)) {
 					if (closest == 0 || closest > detourTarget.position.dist(n.position)) {
 						closest = detourTarget.position.dist(n.position);
@@ -350,7 +392,7 @@ public class Tank2 extends Sprite {
 
 		}catch(NoSuchElementException nse){
 			if(this.position != startpos){
-				System.out.println("Total area searched: " +(100.0*((double)visitedNodes.size()/(parent.grid.rows*parent.grid.cols)) + " Num: " + 0 + "\n Returning to base!"));
+				System.out.println("Total area searched: " +(100.0*((double)visitedNodes.size()/(parent.grid.getRows()*parent.grid.getCols())) + " Num: " + 0 + "\n Returning to base!"));
 				next = parent.gridSearch(startpos);
 			}
 		}
