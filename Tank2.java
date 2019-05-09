@@ -21,7 +21,7 @@ public class Tank2 extends Sprite {
 	private Node detourTarget = null;
 
 	private HashSet<Node> detourExceptions;
-	private PVector sensor;
+	private PVector[] sensor;
 
 	public Tank2(Main parent, int id, Team team, PVector _startpos, float diameter) {
 		this.parent = parent;
@@ -76,7 +76,7 @@ public class Tank2 extends Sprite {
 		obstacles.add(parent.grid.nodes[10][10]);
 		*/
 
-		sensor = new PVector(position.x,position.y);
+		sensor = new PVector[]{new PVector(position.x,position.y), new PVector(position.x,position.y)};
 		detourExceptions = new HashSet<>();
 
 		startPatrol();
@@ -151,19 +151,23 @@ public class Tank2 extends Sprite {
 	}
 
 	public void checkSensor() {
-		sensor = getSensorPositionFromTankAngle(getTankAngle());
-		Node nearestSensorNode = parent.grid.getNearestNode(sensor);
+		sensor[0] = getSensorPositionFromTankAngle(getTankAngle());
+		sensor[1] = getSensorPositionFromTankAngle2(getTankAngle());
 
-		if (nearestSensorNode != null) {
-			if (!(nearestSensorNode.row == 0 && nearestSensorNode.col == 0)) {
-				if (!nearestSensorNode.isEmpty) {
-					boolean notAdded = obstacles.add(nearestSensorNode);
-					if (notAdded) {
-						System.out.println(nearestSensorNode + " added to obstacles");
+		for (int i = 0; i < 2; i++) {
+			Node nearestSensorNode = parent.grid.getNearestNode(sensor[i]);
+			if (nearestSensorNode != null) {
+				if (!(nearestSensorNode.row == 0 && nearestSensorNode.col == 0)) {
+					if (!nearestSensorNode.isEmpty) {
+						boolean notAdded = obstacles.add(nearestSensorNode);
+						if (notAdded) {
+							System.out.println(nearestSensorNode + " added to obstacles");
+						}
 					}
 				}
 			}
 		}
+
 	}
 
 	public void update() {
@@ -364,8 +368,8 @@ public class Tank2 extends Sprite {
 	private Node addClosestToDetour() {
 		float closest = 0;
 		Node temp = null;
-		LinkedList<Node> adjecent = parent.getAdjacentNodes(currentNode);
-		for(Node n: adjecent) {
+		LinkedList<Node> adjacent = parent.getAdjacentNodes(currentNode);
+		for(Node n: adjacent) {
 			if (!obstacles.contains(n) && (detourExceptions == null || !detourExceptions.contains(n))) {
 				if (!n.equals(detourTarget)) {
 					if (closest == 0 || closest > detourTarget.position.dist(n.position)) {
@@ -415,19 +419,18 @@ public class Tank2 extends Sprite {
 
 
 	public void display() {
-
 		drawSensor();
 		parent.pushMatrix();
 		drawTank(position.x, position.y);
 		drawTurret();
 		parent.popMatrix();
-
 	}
 
 	private void drawSensor() {
 		parent.fill(team.getColor(),50);
 		parent.strokeWeight(1);
-		parent.ellipse(sensor.x, sensor.y, 20, 20);
+		parent.ellipse(sensor[0].x, sensor[0].y, 20, 20);
+		parent.ellipse(sensor[1].x, sensor[1].y, 20, 20);
 	}
 
 	private void drawTank(float x, float y) {
