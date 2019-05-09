@@ -10,6 +10,7 @@ public class Tank2 extends Sprite {
 	private LinkedList<Node> frontier;
 	private HashMap<Node, Boolean> visitedNodes;
 	private HashSet<Node> obstacles;
+	private HashMap<Tank2,Node> locatedEnemiesPosition, friendlyTankLocation;
 	public Main parent;
 	private PVector startpos, velocity, acceleration;
 	private Team team;
@@ -37,6 +38,8 @@ public class Tank2 extends Sprite {
 		frontier = new LinkedList<>();
 		visitedNodes = new HashMap<>();
 		obstacles = new HashSet<>();
+        locatedEnemiesPosition = new HashMap<>();
+        friendlyTankLocation = new HashMap<>();
 		collided = onTheMove = false;
 		if (this.team.getId() == 0) {
 			this.heading = PApplet.radians(0);
@@ -129,9 +132,13 @@ public class Tank2 extends Sprite {
 			if (nearestSensorNode != null) {
 				if (!(nearestSensorNode.row == 0 && nearestSensorNode.col == 0)) {
 					if (!nearestSensorNode.isEmpty) {
-						boolean notAdded = obstacles.add(nearestSensorNode);
-						if (notAdded) {
-							System.out.println(nearestSensorNode + " added to obstacles");
+						if (isContentTank(nearestSensorNode)) {
+                            isFriendOrFoe(((Tank2)nearestSensorNode.content()), nearestSensorNode);
+						} else {
+							boolean notAdded = obstacles.add(nearestSensorNode);
+							if (notAdded) {
+								System.out.println(nearestSensorNode + " added to obstacles");
+							}
 						}
 					}
 				}
@@ -140,12 +147,41 @@ public class Tank2 extends Sprite {
 
 	}
 
+	private boolean isContentTank(Node n) {
+		if (n.content() instanceof Tank2) {
+			return true;
+		}
+		return false;
+	}
+    private boolean isFriendOrFoe(Tank2 tank, Node atPosition){
+	    if(tank.team.id != team.id){
+            if(!locatedEnemiesPosition.containsKey(tank)){
+                locatedEnemiesPosition.put(tank, atPosition);
+                System.out.println("Enemy located at: " + atPosition.toString());
+            }else if(!locatedEnemiesPosition.get(tank).equals(atPosition)){
+                locatedEnemiesPosition.replace(tank,atPosition);
+                System.out.println("Enemy located at: " + atPosition.toString());
+            }
+	        return true;
+        }else if(!tank.equals(this)){
+	        if(!friendlyTankLocation.containsKey(tank)){
+                friendlyTankLocation.put(tank, atPosition);
+                System.out.println("Friend located at: " + atPosition.toString());
+            }else if(!friendlyTankLocation.get(tank).equals(atPosition)){
+	            friendlyTankLocation.replace(tank,atPosition);
+                System.out.println("Friend located at: " + atPosition.toString());
+            }
+
+
+        }
+        return false;
+    }
+
 	public void update() {
 		try {
 			//ta nästa nod, kolla ifall den är längre bort än ett hopp
 			//kör best-first-search ifall den är längre bort (detour)
 			if (!onTheMove && !frontier.isEmpty() && !detouring) {
-
 				nextNode = fetchNextPosition();
 				System.out.print("nextNode " + nextNode);
 				if (position.dist(nextNode.position) >= parent.getGrid_size() + 1) {
@@ -185,6 +221,7 @@ public class Tank2 extends Sprite {
 				prevNode = currentNode;
 				currentNode = nextNode;
 				if (detouring) {
+				    moveTankContent();
 					detourExceptions.add(prevNode);
 					// ifall den är på detour, lägg till närmaste till detourTarget
 					// klar ifall "currentNode.equals(detourTarget)"
@@ -229,6 +266,7 @@ public class Tank2 extends Sprite {
 			if (currentAngle > desiredAngle - 2 && currentAngle < desiredAngle + 2) {
 				position.add(velocity);
 			} else {
+
 				if (currentAngle < desiredAngle) {
 					heading += parent.radians(3);
 				} else {
@@ -246,10 +284,13 @@ public class Tank2 extends Sprite {
 
 	private void moveTankContent(){
 		if(currentNode != null && currentNode.equals(nextNode)){
-			System.out.print("ADDED: " + currentNode.toString() + " ");
+			//System.out.print("ADDED: " + currentNode.toString() + " ");
 			currentNode.addContent(this);
-			System.out.println("Removed: " + prevNode.toString());
-			prevNode.removeContent();
+			if(!currentNode.equals(prevNode)){
+              //  System.out.println("Removed: " + prevNode.toString());
+                prevNode.removeContent();
+            }
+
 
 		}
 	}
@@ -397,8 +438,9 @@ public class Tank2 extends Sprite {
 	}
 	private void startPatrol(){
         frontier.push(parent.gridSearch(startpos));
-        nextNode = frontier.pop();
+        prevNode = currentNode = nextNode = frontier.pop();
         visitedNodes.put(nextNode,true);
+        moveTankContent();
         addToFrontier();
     }
 
