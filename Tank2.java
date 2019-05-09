@@ -480,4 +480,20 @@ public class Tank2 extends Sprite {
 		parent.line(0, 0, diameter / 2, 0);
 	}
 
+	@Override
+	public boolean equals(Object other) {
+        boolean equal = false;
+        if(other instanceof Tank2){
+            Tank2 temp = (Tank2) other;
+            equal = (id == temp.id);
+        }
+
+        return equal;
+    }
+
+    @Override
+    public int hashCode() {
+	    return ((Integer)id).hashCode();
+    }
+
 }
