@@ -39,42 +39,12 @@ public class Tank2 extends Sprite {
 		obstacles = new HashSet<>();
 		collided = onTheMove = false;
 		if (this.team.getId() == 0) {
-
-			//Hembasen läggs till så tanken redan vet om den
-			/*
-			for (int i = 0; i < 3; i++) {
-				for (int j = 0; j < 7; j++) {
-					visitedNodes.put(parent.grid.nodes[i][j], true);
-				}
-			}
-			frontier.add(parent.grid.nodes[3][0]);
-			*/
-
 			this.heading = PApplet.radians(0);
 		}
 		if (this.team.getId() == 1) {
 			this.heading = PApplet.radians(180);
 		}
 
-		//lägger till alla obstacles hårdkodat just nu, men detta bör ju göras dynamiskt under runtime
-		/*
-		obstacles.add(parent.grid.nodes[4][4]);
-		obstacles.add(parent.grid.nodes[4][3]);
-		obstacles.add(parent.grid.nodes[5][4]);
-		obstacles.add(parent.grid.nodes[5][3]);
-
-		obstacles.add(parent.grid.nodes[3][10]);
-		obstacles.add(parent.grid.nodes[3][11]);
-		obstacles.add(parent.grid.nodes[3][12]);
-		obstacles.add(parent.grid.nodes[4][10]);
-		obstacles.add(parent.grid.nodes[4][11]);
-		obstacles.add(parent.grid.nodes[4][12]);
-
-		obstacles.add(parent.grid.nodes[9][9]);
-		obstacles.add(parent.grid.nodes[9][10]);
-		obstacles.add(parent.grid.nodes[10][9]);
-		obstacles.add(parent.grid.nodes[10][10]);
-		*/
 
 		sensor = new PVector[]{new PVector(position.x,position.y), new PVector(position.x,position.y)};
 		detourExceptions = new HashSet<>();
@@ -175,6 +145,7 @@ public class Tank2 extends Sprite {
 			//ta nästa nod, kolla ifall den är längre bort än ett hopp
 			//kör best-first-search ifall den är längre bort (detour)
 			if (!onTheMove && !frontier.isEmpty() && !detouring) {
+
 				nextNode = fetchNextPosition();
 				System.out.print("nextNode " + nextNode);
 				if (position.dist(nextNode.position) >= parent.getGrid_size() + 1) {
@@ -233,6 +204,8 @@ public class Tank2 extends Sprite {
 				}
 			}
 
+			moveTankContent();
+
 			velocity.add(acceleration);
 			velocity.limit(3);
 
@@ -269,6 +242,16 @@ public class Tank2 extends Sprite {
 			e.printStackTrace();
 		}
 
+	}
+
+	private void moveTankContent(){
+		if(currentNode != null && currentNode.equals(nextNode)){
+			System.out.print("ADDED: " + currentNode.toString() + " ");
+			currentNode.addContent(this);
+			System.out.println("Removed: " + prevNode.toString());
+			prevNode.removeContent();
+
+		}
 	}
 
 	private int getTankAngle() {
@@ -414,7 +397,9 @@ public class Tank2 extends Sprite {
 	}
 	private void startPatrol(){
         frontier.push(parent.gridSearch(startpos));
-        visitedNodes.put(frontier.peek(),false);
+        nextNode = frontier.pop();
+        visitedNodes.put(nextNode,true);
+        addToFrontier();
     }
 
 
