@@ -415,14 +415,18 @@ public class Tank2 extends Sprite {
 
 
 	public void display() {
+
 		drawSensor();
 		parent.pushMatrix();
 		drawTank(position.x, position.y);
 		drawTurret();
 		parent.popMatrix();
+
 	}
 
 	private void drawSensor() {
+		parent.fill(team.getColor(),50);
+		parent.strokeWeight(1);
 		parent.ellipse(sensor.x, sensor.y, 20, 20);
 	}
 
