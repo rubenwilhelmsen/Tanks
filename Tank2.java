@@ -16,10 +16,10 @@ public class Tank2 extends Sprite {
 	private float heading;
 	private boolean collided, onTheMove, returningToReport, reporting;
 	private Node nextNode, currentNode, prevNode;
-	private boolean detouring = false;
-	private Node detourTarget = null;
+	private boolean bestFirst = false;
+	private Node bestFirstTarget = null;
     private long reportStarted;
-	private HashSet<Node> detourExceptions;
+	private HashSet<Node> bestFirstExceptions;
 	private PVector[] sensor;
 
 	public Tank2(Main parent, int id, Team team, PVector _startpos, float diameter) {
@@ -49,7 +49,7 @@ public class Tank2 extends Sprite {
 
 
 		sensor = new PVector[]{new PVector(position.x,position.y), new PVector(position.x,position.y)};
-		detourExceptions = new HashSet<>();
+		bestFirstExceptions = new HashSet<>();
 
 		startPatrol();
 
@@ -89,10 +89,10 @@ public class Tank2 extends Sprite {
 
 
 
-				detourTarget = frontier.peek();
-				System.out.println("detourtarget " + detourTarget);
+				bestFirstTarget = frontier.peek();
+				System.out.println("bestFirstTarget " + bestFirstTarget);
 				nextNode = currentNode;
-				detouring = true;
+				bestFirst = true;
 
 
 				// Kontroll om att tanken inte "fastnat" i en annan tank.
@@ -180,130 +180,152 @@ public class Tank2 extends Sprite {
     private void enemyLocated(){
 	    prioFront.addAll(frontier);
 	    frontier.clear();
-        startDetouring(parent.gridSearch(startpos));
+        startBestFirst(parent.gridSearch(startpos));
         returningToReport = true;
     }
     private void reporting(){
 	    returningToReport = false;
-        detouringCompleted();
+        bestFirstCompleted();
 	    reporting = true;
 	    reportStarted = System.currentTimeMillis();
     }
 
+    private PVector dampenSpeed() {
+		PVector desired = PVector.sub(nextNode.position, this.position);  // A vector pointing from the position to the target
+		float d = desired.mag();
+
+		// Scale with arbitrary damping within 100 pixels
+		if (d < 10) {
+			float m = parent.map(d, 0, 5, 0, 1);
+			desired.setMag(m);
+		} else {
+			desired.setMag(5);
+		}
+		return desired;
+	}
+
+	private void handleNodeArrival() {
+		System.out.println("arrived at " + nextNode);
+		prevNode = currentNode;
+		currentNode = nextNode;
+		if (bestFirst) {
+			moveTankContent();
+			bestFirstExceptions.add(prevNode);
+			// ifall den är på bestFirst, lägg till närmaste till bestFirstTarget
+			// klar ifall "currentNode.equals(bestFirstTarget)"
+			if (currentNode.equals(bestFirstTarget)) {
+				if(returningToReport){
+					reporting();
+				}else{
+					bestFirstCompleted();
+				}
+
+			} else {
+				System.out.println("bestFirst... Target: " + bestFirstTarget);
+				nextNode = addClosestToBestFirst();
+			}
+		} else {
+			onTheMove = false;
+			addToFrontier();
+		}
+		moveTankContent();
+	}
+
+	private void handleTankRotation() {
+		float theta = velocity.heading() + parent.PI / 2 - parent.radians(90);
+		int currentAngle = (int)parent.degrees(heading);
+		int desiredAngle = (int)parent.degrees(theta);
+
+		if (currentAngle > desiredAngle - 2 && currentAngle < desiredAngle + 2) {
+			position.add(velocity);
+		} else {
+
+			if (currentAngle < desiredAngle) {
+				heading += parent.radians(3);
+			} else {
+				heading -= parent.radians(3);
+			}
+
+		}
+	}
+
+	private void nextNodeObstacleHelper() {
+		if (obstacles.contains(nextNode)) {
+			// lägger till nästa närmaste nod ifall nästa är ett obstacle
+			// ändrar bestFirstTarget ifall det är en obstacle
+			if (nextNode == bestFirstTarget) {
+				onTheMove = false;
+				bestFirst = false;
+			} else {
+				nextNode = addClosestToBestFirst();
+			}
+		}
+	}
+
+	// Används för att sätta nextNode när tanken kör breadth-first search
+	// Ändrar till best first search ifall noder inte är bredvid
+	private void decideNextNode() {
+		if (!onTheMove && (!frontier.isEmpty()|| !prioFront.isEmpty()) && !bestFirst) {
+			nextNode = fetchNextPosition();
+			System.out.print("nextNode " + nextNode);
+			if (position.dist(nextNode.position) >= parent.getGrid_size() + 1) {
+				startBestFirst(nextNode);
+				System.out.println(", node is not adjecent, bestFirst");
+			} else {
+				System.out.println(", node is adjecent");
+			}
+			onTheMove = true;
+		} else if (!onTheMove && (frontier.isEmpty() && prioFront.isEmpty())) {
+			startPatrol();
+		}
+	}
+
 	public void update() {
 		if(!reporting){
-			//ta nästa nod, kolla ifall den är längre bort än ett hopp
-			//kör best-first-search ifall den är längre bort (detour)
-			if (!onTheMove && (!frontier.isEmpty()|| !prioFront.isEmpty()) && !detouring) {
-				nextNode = fetchNextPosition();
-				System.out.print("nextNode " + nextNode);
-				if (position.dist(nextNode.position) >= parent.getGrid_size() + 1) {
-					startDetouring(nextNode);
-					System.out.println(", node is not adjecent, detouring");
-				} else {
-					System.out.println(", node is adjecent");
-				}
-				onTheMove = true;
-			} else if (!onTheMove && (frontier.isEmpty() && prioFront.isEmpty())) {
-				startPatrol();
-			}
+			decideNextNode();
 
+			// Kollar sensorn för obstacels och andra tanks
 			checkSensor();
 
-			PVector desired = PVector.sub(nextNode.position, this.position);  // A vector pointing from the position to the target
-			float d = desired.mag();
+			PVector desired = dampenSpeed();
 
-			// Scale with arbitrary damping within 100 pixels
-			if (d < 10) {
-				float m = parent.map(d, 0, 5, 0, 1);
-				desired.setMag(m);
-			} else {
-				desired.setMag(5);
-			}
-
-			// Steering = Desired minus Velocity
 			PVector steer = PVector.sub(desired, velocity);
 			steer.limit(3f);  // Limit to maximum steering force
 			acceleration.add(steer);
 
-			// tanken har anlänt vid nextNode
+			// ifall tanken har anlänt vid nextNode
 			if (desired.mag() < 0.1f) {
-				System.out.println("arrived at " + nextNode);
-				prevNode = currentNode;
-				currentNode = nextNode;
-				if (detouring) {
-				    moveTankContent();
-					detourExceptions.add(prevNode);
-					// ifall den är på detour, lägg till närmaste till detourTarget
-					// klar ifall "currentNode.equals(detourTarget)"
-					if (currentNode.equals(detourTarget)) {
-					    if(returningToReport){
-					        reporting();
-                        }else{
-                            detouringCompleted();
-                        }
-
-					} else {
-						System.out.println("detouring... Target: " + detourTarget);
-						nextNode = addClosestToDetour();
-					}
-				} else {
-					onTheMove = false;
-					addToFrontier();
-				}
+				handleNodeArrival();
 			}
 
-			moveTankContent();
-
+			// Tanken förflyttar sig
 			velocity.add(acceleration);
 			velocity.limit(3);
 
 			//rotering till nästa nod
-			float theta = velocity.heading() + parent.PI / 2 - parent.radians(90);
-			int currentAngle = (int)parent.degrees(heading);
-			int desiredAngle = (int)parent.degrees(theta);
+			handleTankRotation();
 
-			if (obstacles.contains(nextNode)) {
-				// lägger till nästa närmaste nod ifall nästa är ett obstacle
-				// ändrar detourTarget ifall det är en obstacle
-				if (nextNode == detourTarget) {
-					onTheMove = false;
-					detouring = false;
-				} else {
-					//detourExceptions.add(prevNode);
-					nextNode = addClosestToDetour();
-				}
-			}
-
-			if (currentAngle > desiredAngle - 2 && currentAngle < desiredAngle + 2) {
-				position.add(velocity);
-			} else {
-
-				if (currentAngle < desiredAngle) {
-					heading += parent.radians(3);
-				} else {
-					heading -= parent.radians(3);
-				}
-
-			}
+			// kollar ifall nextNode är obstacle
+			// hanterar det ifall det är sant
+			nextNodeObstacleHelper();
 
 			acceleration.mult(0);
 		}else if ((reportStarted+3000) < System.currentTimeMillis()){
 		    reporting = false;
         }
 	}
-    private void startDetouring(Node target){
-        detourExceptions.clear();
-        detourTarget = target;
-        nextNode = addClosestToDetour();
-        detouring = true;
+    private void startBestFirst(Node target){
+        bestFirstExceptions.clear();
+        bestFirstTarget = target;
+        nextNode = addClosestToBestFirst();
+        bestFirst = true;
     }
-	private void detouringCompleted(){
-        detourExceptions.clear();
-        detouring = false;
-        detourTarget = null;
+	private void bestFirstCompleted(){
+        bestFirstExceptions.clear();
+        bestFirst = false;
+        bestFirstTarget = null;
         addToFrontier();
-        System.out.println("detour complete");
+        System.out.println("bestFirst complete");
     }
 
 	private void moveTankContent(){
@@ -412,18 +434,18 @@ public class Tank2 extends Sprite {
 		return temp;
 	}
 
-	//lägger till närmaste noden från getAdjecentNode i nextNode när tanken detour:ar
-	private Node addClosestToDetour() {
+	//lägger till närmaste noden från getAdjecentNode i nextNode när tanken kör best-first search
+	private Node addClosestToBestFirst() {
 		float closest = 0;
 		Node temp = null;
 		LinkedList<Node> adjacent = parent.getAdjacentNodes(currentNode);
 		Node closestEnemy = null;
 		for(Node n: adjacent) {
-			if (!obstacles.contains(n) && (detourExceptions == null || !detourExceptions.contains(n))) {
-				if (!n.equals(detourTarget)) {
-					if (closest == 0 || closest > detourTarget.position.dist(n.position)) {
+			if (!obstacles.contains(n) && (bestFirstExceptions == null || !bestFirstExceptions.contains(n))) {
+				if (!n.equals(bestFirstTarget)) {
+					if (closest == 0 || closest > bestFirstTarget.position.dist(n.position)) {
 						if(locatedEnemiesPosition.isEmpty()){
-							closest = detourTarget.position.dist(n.position);
+							closest = bestFirstTarget.position.dist(n.position);
 							temp = n;
 						}else {
 							if(closestEnemy == null){
@@ -431,10 +453,10 @@ public class Tank2 extends Sprite {
 							}
 							float enemyDist = n.position.dist(closestEnemy.position);
 							if(enemyDist > 400){
-								closest = detourTarget.position.dist(n.position);
+								closest = bestFirstTarget.position.dist(n.position);
 								temp = n;
 							}else if(temp == null || enemyDist < temp.position.dist(closestEnemy.position)){
-								closest = detourTarget.position.dist(n.position);
+								closest = bestFirstTarget.position.dist(n.position);
 								temp = n;
 							}
 						}
@@ -512,11 +534,10 @@ public class Tank2 extends Sprite {
         addToFrontier();
     }
 
-
 	public void display() {
 		drawSensor();
 		parent.pushMatrix();
-		drawTank(position.x, position.y);
+		drawTank();
 		drawTurret();
 		parent.popMatrix();
 	}
@@ -528,10 +549,11 @@ public class Tank2 extends Sprite {
 		parent.ellipse(sensor[1].x, sensor[1].y, 20, 20);
 	}
 
-	private void drawTank(float x, float y) {
+	private void drawTank() {
 		parent.fill(team.getColor());
 
 		parent.translate(position.x, position.y);
+
 		parent.rotate(heading);
 
 		if (this.team.getId() == 0) {
