@@ -123,8 +123,7 @@ public class Tank2 extends Sprite {
 	}
 
 	public void checkSensor() {
-		sensor[0] = getSensorPositionFromTankAngle(getTankAngle());
-		sensor[1] = getSensorPositionFromTankAngle2(getTankAngle());
+		sensor = getSensorPositionFromTankAngle(getTankAngle());
 
 		for (int i = 0; i < 2; i++) {
 			Node nearestSensorNode = parent.grid.getNearestNode(sensor[i]);
@@ -235,14 +234,15 @@ public class Tank2 extends Sprite {
 		float theta = velocity.heading() + parent.PI / 2 - parent.radians(90);
 		int currentAngle = (int)parent.degrees(heading);
 		int desiredAngle = (int)parent.degrees(theta);
-
 		if (currentAngle > desiredAngle - 2 && currentAngle < desiredAngle + 2) {
 			position.add(velocity);
 		} else {
 
 			if (currentAngle < desiredAngle) {
+				System.out.println(1);
 				heading += parent.radians(3);
 			} else {
+				System.out.println(0);
 				heading -= parent.radians(3);
 			}
 
@@ -372,63 +372,41 @@ public class Tank2 extends Sprite {
 		return angle;
 	}
 
-	private PVector getSensorPositionFromTankAngle(int tankAngle) {
-		PVector temp = position;
+	private PVector[] getSensorPositionFromTankAngle(int tankAngle) {
+		PVector[] temp = new PVector[2];
+		temp[0] = temp[1] = position;
 		switch (tankAngle) {
 			case 0:
-				temp = new PVector(position.x + 50, position.y);
+				temp[0] = new PVector(position.x + 50, position.y);
+				temp[1] = new PVector(position.x + 100, position.y);
 				break;
 			case 1:
-				temp = new PVector(position.x + 50, position.y + 50);
+				temp[0] = new PVector(position.x + 50, position.y + 50);
+				temp[1] = new PVector(position.x + 100, position.y + 100);
 				break;
 			case 2:
-				temp = new PVector(position.x, position.y + 50);
+				temp[0] = new PVector(position.x, position.y + 50);
+				temp[1] = new PVector(position.x, position.y + 100);
 				break;
 			case 3:
-				temp = new PVector(position.x - 50, position.y + 50);
+				temp[0] = new PVector(position.x - 50, position.y + 50);
+				temp[1] = new PVector(position.x - 100, position.y + 100);
 				break;
 			case 4:
-				temp = new PVector(position.x - 50, position.y);
+				temp[0] = new PVector(position.x - 50, position.y);
+				temp[1] = new PVector(position.x - 100, position.y);
 				break;
 			case 5:
-				temp = new PVector(position.x - 50, position.y - 50);
+				temp[0] = new PVector(position.x - 50, position.y - 50);
+				temp[1] = new PVector(position.x - 100, position.y - 100);
 				break;
 			case 6:
-				temp = new PVector(position.x, position.y - 50);
+				temp[0] = new PVector(position.x, position.y - 50);
+				temp[1] = new PVector(position.x, position.y - 100);
 				break;
 			case 7:
-				temp = new PVector(position.x + 50, position.y - 50);
-				break;
-		}
-		return temp;
-	}
-
-	private PVector getSensorPositionFromTankAngle2(int tankAngle) {
-		PVector temp = position;
-		switch (tankAngle) {
-			case 0:
-				temp = new PVector(position.x + 100, position.y);
-				break;
-			case 1:
-				temp = new PVector(position.x + 100, position.y + 100);
-				break;
-			case 2:
-				temp = new PVector(position.x, position.y + 100);
-				break;
-			case 3:
-				temp = new PVector(position.x - 100, position.y + 100);
-				break;
-			case 4:
-				temp = new PVector(position.x - 100, position.y);
-				break;
-			case 5:
-				temp = new PVector(position.x - 100, position.y - 100);
-				break;
-			case 6:
-				temp = new PVector(position.x, position.y - 100);
-				break;
-			case 7:
-				temp = new PVector(position.x + 100, position.y - 100);
+				temp[0] = new PVector(position.x + 50, position.y - 50);
+				temp[1] = new PVector(position.x + 100, position.y - 100);
 				break;
 		}
 		return temp;
