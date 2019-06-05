@@ -4,6 +4,7 @@ import processing.core.PVector;
 import java.util.*;
 
 public class Tank2 extends Sprite {
+	private final static int STD_SENSOR_DIST = 50;
 	private LinkedList<Node> frontier;
 	private PriorityQueue<Node> prioFront;
 	private HashMap<Node, Boolean> visitedNodes;
@@ -240,10 +241,8 @@ public class Tank2 extends Sprite {
 		} else {
 
 			if (currentAngle < desiredAngle) {
-				System.out.println(1);
 				heading += parent.radians(3);
 			} else {
-				System.out.println(0);
 				heading -= parent.radians(3);
 			}
 
@@ -376,40 +375,35 @@ public class Tank2 extends Sprite {
 	private PVector[] getSensorPositionFromTankAngle(int tankAngle) {
 		PVector[] temp = new PVector[2];
 		temp[0] = temp[1] = position;
-		switch (tankAngle) {
-			case 0:
-				temp[0] = new PVector(position.x + 50, position.y);
-				temp[1] = new PVector(position.x + 100, position.y);
-				break;
-			case 1:
-				temp[0] = new PVector(position.x + 50, position.y + 50);
-				temp[1] = new PVector(position.x + 100, position.y + 100);
-				break;
-			case 2:
-				temp[0] = new PVector(position.x, position.y + 50);
-				temp[1] = new PVector(position.x, position.y + 100);
-				break;
-			case 3:
-				temp[0] = new PVector(position.x - 50, position.y + 50);
-				temp[1] = new PVector(position.x - 100, position.y + 100);
-				break;
-			case 4:
-				temp[0] = new PVector(position.x - 50, position.y);
-				temp[1] = new PVector(position.x - 100, position.y);
-				break;
-			case 5:
-				temp[0] = new PVector(position.x - 50, position.y - 50);
-				temp[1] = new PVector(position.x - 100, position.y - 100);
-				break;
-			case 6:
-				temp[0] = new PVector(position.x, position.y - 50);
-				temp[1] = new PVector(position.x, position.y - 100);
-				break;
-			case 7:
-				temp[0] = new PVector(position.x + 50, position.y - 50);
-				temp[1] = new PVector(position.x + 100, position.y - 100);
-				break;
+		for(int i = 0; i < temp.length; i++) {
+			switch (tankAngle) {
+				case 0:
+					temp[i] = new PVector(position.x + STD_SENSOR_DIST*(i+1), position.y);
+					break;
+				case 1:
+					temp[i] = new PVector(position.x + STD_SENSOR_DIST*(i+1), position.y + STD_SENSOR_DIST*(i+1));
+					break;
+				case 2:
+					temp[i] = new PVector(position.x, position.y + STD_SENSOR_DIST*(i+1));
+					break;
+				case 3:
+					temp[i] = new PVector(position.x - STD_SENSOR_DIST*(i+1), position.y + STD_SENSOR_DIST*(i+1));
+					break;
+				case 4:
+					temp[i] = new PVector(position.x - STD_SENSOR_DIST*(i+1), position.y);
+					break;
+				case 5:
+					temp[i] = new PVector(position.x - STD_SENSOR_DIST*(i+1), position.y - STD_SENSOR_DIST*(i+1));
+					break;
+				case 6:
+					temp[i] = new PVector(position.x, position.y - STD_SENSOR_DIST*(i+1));
+					break;
+				case 7:
+					temp[i] = new PVector(position.x + STD_SENSOR_DIST*(i+1), position.y - STD_SENSOR_DIST*(i+1));
+					break;
+			}
 		}
+
 		return temp;
 	}
 
