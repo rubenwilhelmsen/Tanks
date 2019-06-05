@@ -175,14 +175,8 @@ public class Main extends PApplet {
 			fill(255, 92, 92);
 			ellipse(mouseX, mouseY, 5, 5);
 			grid.displayNearestNode(mouseX, mouseY);
-		}
 
-		if (pause) {
-			textSize(36);
-			fill(30);
-			text("Paused!", width / 2 - 100, height / 2);
 		}
-
 	}
 
 	private void displayTrees() {
@@ -199,6 +193,9 @@ public class Main extends PApplet {
 	private void updateTanksDisplay() {
 		for (Tank tank : allTanks) {
 			tank.display();
+			if (debugOn) {
+				tank.drawSensor();
+			}
 		}
 	}
 
