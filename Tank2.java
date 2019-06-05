@@ -139,6 +139,7 @@ public class Tank2 extends Sprite {
 								System.out.println(nearestSensorNode + " added to obstacles");
 							}
 						}
+						break;
 					}
 				}
 			}
@@ -441,7 +442,7 @@ public class Tank2 extends Sprite {
 		LinkedList<Node> adjacent = parent.getAdjacentNodes(currentNode);
 		Node closestEnemy = null;
 		for(Node n: adjacent) {
-			if (!obstacles.contains(n) && (bestFirstExceptions == null || !bestFirstExceptions.contains(n))) {
+			if (!obstacles.contains(n) && (bestFirstExceptions == null || !bestFirstExceptions.contains(n)) && n.isEmpty) {
 				if (!n.equals(bestFirstTarget)) {
 					if (closest == 0 || closest > bestFirstTarget.position.dist(n.position)) {
 						if(locatedEnemiesPosition.isEmpty()){
@@ -502,7 +503,7 @@ public class Tank2 extends Sprite {
 	private void simpleFrontier(){
         LinkedList<Node> children = parent.getAdjacentNodes(nextNode);
         for(Node child: children){
-            if(!visitedNodes.containsKey(child) && !obstacles.contains(child)){
+            if(!visitedNodes.containsKey(child) && !obstacles.contains(child) && child.isEmpty){
                 frontier.add(child);
                 visitedNodes.put(child, false);
             }
@@ -511,7 +512,7 @@ public class Tank2 extends Sprite {
     private void prioFrontier(){
         LinkedList<Node> children = parent.getAdjacentNodes(nextNode);
         for(Node child: children){
-            if(!visitedNodes.containsKey(child) && !obstacles.contains(child)){
+            if(!visitedNodes.containsKey(child) && !obstacles.contains(child) && child.isEmpty){
                 prioFront.add(child);
                 visitedNodes.put(child, false);
             }
