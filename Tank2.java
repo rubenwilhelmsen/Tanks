@@ -314,13 +314,16 @@ public class Tank2 extends Sprite {
 		    reporting = false;
         }
 	}
-    private void startBestFirst(Node target){
+
+
+	private void startBestFirst(Node target){
         bestFirstExceptions.clear();
         bestFirstTarget = target;
         nextNode = addClosestToBestFirst();
         bestFirst = true;
     }
-	private void bestFirstCompleted(){
+
+    private void bestFirstCompleted(){
         bestFirstExceptions.clear();
         bestFirst = false;
         bestFirstTarget = null;
@@ -328,6 +331,10 @@ public class Tank2 extends Sprite {
         System.out.println("bestFirst complete");
     }
 
+    /*
+    Flyttar tanken från den tidigare noden till den nya noden och sätter föregående nodens content till null - vilket
+    gör att den räknas som tom och den nya noden som upptagen.
+     */
 	private void moveTankContent(){
 		if(currentNode != null && currentNode.equals(nextNode)){
 			//System.out.print("ADDED: " + currentNode.toString() + " ");
@@ -341,6 +348,7 @@ public class Tank2 extends Sprite {
 		}
 	}
 
+	//Beräknar och returnerar åt vilket ungefärligt väderstreck som tanken är riktad utifrån dess vinkel
 	private int getTankAngle() {
 		int angle = -1;
 		float heading = parent.degrees(this.heading);
@@ -371,7 +379,7 @@ public class Tank2 extends Sprite {
 		}
 		return angle;
 	}
-
+	// avgör tankens synsensorers position utifrån vilket väderstreck den tittar åt - dessa väderstreck räknas ut av metoden getTankAngle()
 	private PVector[] getSensorPositionFromTankAngle(int tankAngle) {
 		PVector[] temp = new PVector[2];
 		temp[0] = temp[1] = position;
@@ -443,6 +451,11 @@ public class Tank2 extends Sprite {
 		return temp;
 	}
 
+	/*
+	Hämtar nästa nod som ska besökas från frontier, vilken frontier som används beror på om breadth first eller
+	greedy best first används. Detta i sin tur beror på om fienden har upptäckts.
+
+	 */
 	private Node fetchNextPosition(){
 		Node next = null;
 		try{
@@ -465,6 +478,7 @@ public class Tank2 extends Sprite {
 		return next;
 	}
 
+	//anropas när noder ska läggas till i frontier:en, avgör vilken typ av frontier som ska användas och anropar lämplig metod.
 	private void addToFrontier(){
 	    if(locatedEnemiesPosition.isEmpty()){
 	        simpleFrontier();
@@ -472,6 +486,10 @@ public class Tank2 extends Sprite {
 	        prioFrontier();
 	    }
 	}
+	/*
+	Hämtar alla runt omkringliggande noder från nuvarande positionen(som i detta fall är nextNode) och avgör
+	huruvida dessa ska läggas till i frontier. Metoden används vid breadth first sökning och frontier:en är en vanlig kö - FIFO
+	 */
 	private void simpleFrontier(){
         LinkedList<Node> children = parent.getAdjacentNodes(nextNode);
         for(Node child: children){
@@ -481,6 +499,11 @@ public class Tank2 extends Sprite {
             }
         }
     }
+    /*
+    Hämtar alla omkringliggande noder utifrån nuvarande position och lägger till dessa i en frontier som är en prioritetskö
+    om de inte råkar vara upptagna av annan tank eller hinder eller redan besökta. Metoden används vid greedy Best First sökningen.
+
+     */
     private void prioFrontier(){
         LinkedList<Node> children = parent.getAdjacentNodes(nextNode);
         for(Node child: children){
@@ -570,6 +593,9 @@ public class Tank2 extends Sprite {
 	    return ((Integer)id).hashCode();
     }
 
+
+    /*Denna metod avgör vilken lokaliserad fiende som är närmst och används vid väljandet av
+	väg för att undvika att komma för nära fienden.*/
 	private Node findClosetEnemy(){
 		Iterator<Node> knownEnemyPositions = locatedEnemiesPosition.values().iterator();
 		Node closest = null;
@@ -585,7 +611,7 @@ public class Tank2 extends Sprite {
 
 
 
-
+	//Denna klass används vid greedy best first sökningen för att avgöra vilken Node som är det bästa alternativet
     private class NodeComparator implements Comparator<Node>{
 
 
