@@ -106,9 +106,7 @@ public class Main extends PApplet {
 		teams[1].displayHomeBase();
 		displayTrees();
 		updateTanksDisplay();
-		//if (debugOn) {
-			grid.display();
-		//}
+		showGUI();
 	}
 
 	/*
@@ -154,6 +152,7 @@ public class Main extends PApplet {
 	private void showGUI() {
 		// println("*** showGUI()");
 
+
 		textSize(14);
 		fill(30);
 		text("Team1: " + teams[0].numberOfHits, 10, 20);
@@ -162,6 +161,7 @@ public class Main extends PApplet {
 		textSize(14);
 
 		if (debugOn) {
+
 			// Visa framerate.
 			fill(30);
 			text("FPS:" + floor(frameRate), 10, height - 10);
@@ -174,14 +174,8 @@ public class Main extends PApplet {
 			fill(255, 92, 92);
 			ellipse(mouseX, mouseY, 5, 5);
 			grid.displayNearestNode(mouseX, mouseY);
-		}
 
-		if (pause) {
-			textSize(36);
-			fill(30);
-			text("Paused!", width / 2 - 100, height / 2);
 		}
-
 	}
 
 	private void displayTrees() {
@@ -198,6 +192,9 @@ public class Main extends PApplet {
 	private void updateTanksDisplay() {
 		for (Tank tank : allTanks) {
 			tank.display();
+			if (debugOn) {
+				tank.drawSensor();
+			}
 		}
 	}
 
