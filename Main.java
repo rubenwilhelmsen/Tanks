@@ -1,9 +1,7 @@
 import processing.core.PApplet;
 import processing.core.PVector;
 
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 
 public class Main extends PApplet {
 	
@@ -31,7 +29,7 @@ public class Main extends PApplet {
 
 	Tree[] allTrees = new Tree[3];
 
-	Tank2[] allTanks = new Tank2[6];
+	Tank[] allTanks = new Tank[6];
 
 	Team[] teams = new Team[2];
 
@@ -92,15 +90,16 @@ public class Main extends PApplet {
 	public void draw() {
 		background(200);
 
+
 		// UPDATE LOGIC
-		updateTanksLogic();
+		//updateTanksLogic();
 		updateTeamsLogic();
 
 		// UPDATE TANKS
 		updateTanks();
 
 		// CHECK FOR COLLISIONS
-		checkForCollisionsTanks();
+		//checkForCollisionsTanks();
 
 		// UPDATE DISPLAY
 		teams[0].displayHomeBase();
@@ -112,6 +111,7 @@ public class Main extends PApplet {
 
 	}
 
+	/*
 	public void checkForCollisionsTanks() {
 		// Check for collisions with Canvas Boundaries
 		for (int i = 0; i < allTanks.length; i++) {
@@ -130,13 +130,14 @@ public class Main extends PApplet {
 				}
 			}
 		}
-	}
+	}*/
 
+	/*
 	private void updateTanksLogic() {
-		for (Tank2 tank : allTanks) {
+		for (Tank tank : allTanks) {
 			tank.updateLogic();
 		}
-	}
+	}*/
 
 	private void updateTeamsLogic() {
 		teams[0].updateLogic();
@@ -180,6 +181,7 @@ public class Main extends PApplet {
 			fill(30);
 			text("Paused!", width / 2 - 100, height / 2);
 		}
+
 	}
 
 	private void displayTrees() {
@@ -194,7 +196,7 @@ public class Main extends PApplet {
 	}
 
 	private void updateTanksDisplay() {
-		for (Tank2 tank : allTanks) {
+		for (Tank tank : allTanks) {
 			tank.display();
 		}
 	}
@@ -215,6 +217,13 @@ public class Main extends PApplet {
 		Node temp = grid.getNearestNode(currentPosition);
 		//System.out.println(Arrays.toString(grid.getChildrenNodes(temp).toArray()));
 		return temp;
+	}
+
+	@Override
+	public void keyPressed() {
+		if (key == 'd') {
+			debugOn = !debugOn;
+		}
 	}
 
 }
