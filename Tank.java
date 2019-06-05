@@ -162,7 +162,6 @@ public class Tank extends Sprite {
 		prevNode = currentNode;
 		currentNode = nextNode;
 		if (bestFirst) {
-			moveTankContent();
 			bestFirstExceptions.add(prevNode);
 			// ifall den är på bestFirst, lägg till närmaste till bestFirstTarget
 			// klar ifall "currentNode.equals(bestFirstTarget)"
@@ -181,7 +180,6 @@ public class Tank extends Sprite {
 			onTheMove = false;
 			addToFrontier();
 		}
-		moveTankContent();
 	}
 
 	// Används för att rotera tanken
@@ -239,6 +237,7 @@ public class Tank extends Sprite {
 	// Greedy best-first search används också ifall nästa nod under sökning inte är bredvid tanken, i så fall så kör tanken greedy-best first till nästa nod,
 	// detta är till för att undvika kollisioner och för att åka runt träd/tanks
 	public void update() {
+		moveTankContent();
 		if(!reporting){
 			decideNextNode();
 
@@ -287,21 +286,18 @@ public class Tank extends Sprite {
     }
 
 	/*
-    Flyttar tanken från den tidigare noden till den nya noden och sätter föregående nodens content till null - vilket
-    gör att den räknas som tom och den nya noden som upptagen.
+    Kontrollerar om Tanken nu befinner sig närmre en annan nod än den som är satt till currentNode, om så, tar den bort sig själv
+    från den noden som räknats som current och sätter den närmre noden som nytt värde och lägger till sig själv som content i den nya noden.
      */
 	private void moveTankContent(){
-		if(currentNode != null && currentNode.equals(nextNode)){
-			//System.out.print("ADDED: " + currentNode.toString() + " ");
+		Node temp = parent.grid.getNearestNode(this.position);
+		if(!currentNode.equals(temp)){
+			currentNode.removeContent();
+			currentNode = temp;
 			currentNode.addContent(this);
-			if(!currentNode.equals(prevNode)){
-              //  System.out.println("Removed: " + prevNode.toString());
-                prevNode.removeContent();
-            }
-
-
 		}
 	}
+
 	//Beräknar och returnerar åt vilket ungefärligt väderstreck som tanken är riktad utifrån dess vinkel
 	private int getTankAngle() {
 		int angle = -1;
@@ -476,10 +472,8 @@ public class Tank extends Sprite {
             prioFront.add(parent.gridSearch(startpos));
             prevNode = currentNode = nextNode = prioFront.poll();
         }
-
-
+	    currentNode.addContent(this);
         visitedNodes.put(nextNode,true);
-        moveTankContent();
         addToFrontier();
     }
 
