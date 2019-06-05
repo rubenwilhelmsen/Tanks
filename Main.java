@@ -106,9 +106,10 @@ public class Main extends PApplet {
 		teams[1].displayHomeBase();
 		displayTrees();
 		updateTanksDisplay();
-		//if (debugOn) {
+		/*if (debugOn) {
 			grid.display();
-		//}
+		}*/
+		showGUI();
 	}
 
 	/*

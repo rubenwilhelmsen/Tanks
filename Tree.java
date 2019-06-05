@@ -45,6 +45,7 @@ public class Tree extends Sprite {
 	// **************************************************
 	void display() {
 		parent.pushMatrix();
+
 		//parent.translate((float) position.x, (float) position.y);
 
 		parent.fill(204, 102, 0, 100);
@@ -55,7 +56,10 @@ public class Tree extends Sprite {
 			parent.noFill();
 			parent.stroke(255, 0, 0);
 			parent.ellipse(0, 0, diameter(), diameter());
+			parent.stroke(30);
+
 		}
+
 		parent.popMatrix();
 
 	}
