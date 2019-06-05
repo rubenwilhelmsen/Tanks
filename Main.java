@@ -106,6 +106,9 @@ public class Main extends PApplet {
 		teams[1].displayHomeBase();
 		displayTrees();
 		updateTanksDisplay();
+		/*if (debugOn) {
+			grid.display();
+		}*/
 		showGUI();
 	}
 
@@ -152,7 +155,6 @@ public class Main extends PApplet {
 	private void showGUI() {
 		// println("*** showGUI()");
 
-
 		textSize(14);
 		fill(30);
 		text("Team1: " + teams[0].numberOfHits, 10, 20);
@@ -161,7 +163,6 @@ public class Main extends PApplet {
 		textSize(14);
 
 		if (debugOn) {
-
 			// Visa framerate.
 			fill(30);
 			text("FPS:" + floor(frameRate), 10, height - 10);
