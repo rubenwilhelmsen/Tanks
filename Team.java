@@ -1,9 +1,8 @@
-import processing.core.PApplet;
 import processing.core.PVector;
 
 public class Team {
 	Main parent;
-	Tank2[] tanks = new Tank2[3];
+	Tank[] tanks = new Tank[3];
 	int id; // team red 0, team blue 1.
 	int tank_size;
 	PVector tank0_startpos = new PVector();
@@ -31,9 +30,9 @@ public class Team {
 
 		this.numberOfHits = 0;
 
-		tanks[0] = new Tank2(parent, tank0_id, this, this.tank0_startpos, this.tank_size);
-		tanks[1] = new Tank2(parent, tank1_id, this, this.tank1_startpos, this.tank_size);
-		tanks[2] = new Tank2(parent, tank2_id, this, this.tank2_startpos, this.tank_size);
+		tanks[0] = new Tank(parent, tank0_id, this, this.tank0_startpos, this.tank_size);
+		tanks[1] = new Tank(parent, tank1_id, this, this.tank1_startpos, this.tank_size);
+		tanks[2] = new Tank(parent, tank2_id, this, this.tank2_startpos, this.tank_size);
 
 		if (this.id == 0) {
 			this.homebase_x = 0;
