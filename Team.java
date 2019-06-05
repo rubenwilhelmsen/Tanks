@@ -1,3 +1,9 @@
+/**
+ *
+ * Wilhelm Ericsson
+ * Ruben Wilhelmsen
+ *
+ */
 import processing.core.PVector;
 
 public class Team {

@@ -1,7 +1,12 @@
-import java.awt.*;
+/**
+ *
+ * Wilhelm Ericsson
+ * Ruben Wilhelmsen
+ *
+ */
+
 import java.util.ArrayList;
 import java.util.LinkedList;
-
 import processing.core.PApplet;
 import processing.core.PVector;
 

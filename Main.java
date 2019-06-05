@@ -1,3 +1,10 @@
+/**
+ *
+ * Wilhelm Ericsson
+ * Ruben Wilhelmsen
+ *
+ */
+
 import processing.core.PApplet;
 import processing.core.PVector;
 
@@ -90,60 +97,17 @@ public class Main extends PApplet {
 	public void draw() {
 		background(200);
 
-
-		// UPDATE LOGIC
-		//updateTanksLogic();
-		updateTeamsLogic();
-
 		// UPDATE TANKS
 		updateTanks();
-
-		// CHECK FOR COLLISIONS
-		//checkForCollisionsTanks();
-
 		// UPDATE DISPLAY
 		teams[0].displayHomeBase();
 		teams[1].displayHomeBase();
 		displayTrees();
 		updateTanksDisplay();
-		/*if (debugOn) {
-			grid.display();
-		}*/
 		showGUI();
 	}
 
-	/*
-	public void checkForCollisionsTanks() {
-		// Check for collisions with Canvas Boundaries
-		for (int i = 0; i < allTanks.length; i++) {
-			allTanks[i].checkEnvironment();
 
-			// Check for collisions with "no Smart Objects", Obstacles (trees, etc.)
-			for (int j = 0; j < allTrees.length; j++) {
-				allTanks[i].checkCollision(allTrees[j]);
-			}
-
-			// Check for collisions with "Smart Objects", other Tanks.
-			for (int j = 0; j < allTanks.length; j++) {
-				// if ((allTanks[i].getId() != j) && (allTanks[i].health > 0)) {
-				if (allTanks[i].getId() != j) {
-					allTanks[i].checkCollision(allTanks[j]);
-				}
-			}
-		}
-	}*/
-
-	/*
-	private void updateTanksLogic() {
-		for (Tank tank : allTanks) {
-			tank.updateLogic();
-		}
-	}*/
-
-	private void updateTeamsLogic() {
-		teams[0].updateLogic();
-		teams[1].updateLogic();
-	}
 
 	private void updateTanks() {
 		/*for (Tank2 t : allTanks) {
@@ -213,7 +177,6 @@ public class Main extends PApplet {
 
 	public Node gridSearch(PVector currentPosition){
 		Node temp = grid.getNearestNode(currentPosition);
-		//System.out.println(Arrays.toString(grid.getChildrenNodes(temp).toArray()));
 		return temp;
 	}
 
